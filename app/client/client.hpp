@@ -7,16 +7,19 @@
 class Client {
 
     public:
-        ~Client() { if (sockFd != -1) close(sockFd); }
+        Client(Log* log);
+        ~Client();
 
         void StartClient(const char* serverIp, int port);
-        void SetLog(Log& log);
-        // void ProcessRequets();
 
     private:
-        int sockFd = -1;
-        Log log;
+        void SetLog(Log* log);
+        void ListenToServer();
+        int RecvBlocking();
+
+        struct pollfd server;
+        Log* log;
 
 };
 
-#endif CLIENT_HPP
+#endif
