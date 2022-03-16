@@ -5,7 +5,7 @@
 #include <time.h>
 #define MAX_PATH_LENGTH 32;
 
-const std::string LOG_FILE_PREFIX = "../../log/client_log_";
+const std::string LOG_FILE_PREFIX = "log/client_log_";
 
 Log* StartLog();
 
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     int port = atoi(argv[2]);
     char* scriptFd = (argc == 4) ? argv[3] : nullptr;
 
-    Client client;
+    Client client(log);
 
     client.StartClient(serverIp, port);
 

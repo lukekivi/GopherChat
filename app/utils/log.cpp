@@ -40,7 +40,7 @@ void Log::Info(const char * format, ...) {
     if (file.is_open()) {
         file << msg << std::endl;
     } else {
-        std::cout << msg << std::endl;
+        std::cerr << "ERROR: file not open:\n\t" << msg << std::endl;
     }
 }
 

@@ -1,10 +1,15 @@
-#### PRIMARY TARGETS ####
-## Tests
-#   * make run_all_tests
-#   * make run_log_tests
-#   * make run_socket_tests
+####### PRIMARY TARGETS #######
+#-- App:                      #
+#   * make run_server         #
+#   * make run_client         #
+#-- Tests:                    #
+#   * make run_all_tests      #
+#   * make run_log_tests      #
+#   * make run_socket_tests   #
+###############################
 
-port_num = 9000
+port_num = 9010
+server_ip = 127.0.0.1
 
 build:
 	mkdir -p build
@@ -21,15 +26,24 @@ log:
 
 # RUN EXECUTABLES
 run_server: server_main
-	./build/server/server_main port_num
+	./build/server/server_main $(port_num)
+
+run_client: client_main
+	./build/client/client_main $(server_ip) $(port_num) 
 
 # EXECUTABLES
-server_main: server_main.o server.o nonblocking_socket_messenger.o socket_messenger.o log.o log
-	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/nonblocking_socket_messenger.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/server/server_main
+server_main: server_main.o server.o socket_messenger.o log.o log
+	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/server/server_main
+
+client_main: client_main.o client.o socket_messenger.o log.o log
+	g++ -pthread build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/client/client_main
 
 # OBJECTS
 server_main.o: app/server/server_main.cpp build
 	g++ -c app/server/server_main.cpp -o build/objects/server/server_main.o
+
+client_main.o: app/client/client_main.cpp build
+	g++ -c app/client/client_main.cpp -o build/objects/client/client_main.o
 
 log.o: app/utils/log.cpp build
 	g++ -c app/utils/log.cpp -o build/objects/utils/log.o
@@ -37,8 +51,8 @@ log.o: app/utils/log.cpp build
 server.o: app/server/server.cpp build
 	g++ -c app/server/server.cpp -o build/objects/server/server.o
 
-nonblocking_socket_messenger.o: app/utils/socket/socket_messenger.cpp build
-	g++ -c app/utils/socket/nonblocking_socket_messenger.cpp -o build/objects/utils/socket/nonblocking_socket_messenger.o
+client.o: app/client/client.cpp build
+	g++ -c app/client/client.cpp -o build/objects/client/client.o
 
 socket_messenger.o: app/utils/socket/socket_messenger.cpp build
 	g++ -c app/utils/socket/socket_messenger.cpp -o build/objects/utils/socket/socket_messenger.o
@@ -71,8 +85,8 @@ log_main.o: testfiles/utils/log_main.cpp tests
 run_socket_tests: socket_tests
 	./tests/utils/socket/socket_tests
 
-socket_tests: socket_main.o socket_messenger.o tests
-	g++ tests/objects/utils/socket/socket_main.o build/objects/utils/socket/socket_messenger.o -o tests/utils/socket/socket_tests
+socket_tests: socket_main.o socket_messenger.o log.o tests
+	g++ tests/objects/utils/socket/socket_main.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o tests/utils/socket/socket_tests
 
 socket_main.o: testfiles/utils/socket/socket_main.cpp tests
 	mkdir -p tests/objects/utils/socket

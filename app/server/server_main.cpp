@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-const std::string LOG_FILE = "../../log/server_log.txt";
+const std::string LOG_FILE = "log/server_log.txt";
 
 int main(int argc, char** argv) {	
     Log log(LOG_FILE);
