@@ -2,6 +2,12 @@
 #define UTILS_HPP
 
 #define INT_BYTES 4
+#define MAX_FILE_SIZE 10000000
+#define MIN_USRNAME_SIZE 4
+#define MAX_USRNAME_SIZE 8
+#define MIN_PWD_SIZE 4
+#define MAX_PWD_SIZE 8
+#define MAX_MSG_SIZE 256
 
 typedef unsigned char BYTE;
 
@@ -51,6 +57,23 @@ enum NbStatus {
 	BLOCKED,
 	ERROR,
 	OKAY
+};
+
+/**
+ * State to distinguish incoming commands
+ */
+enum Command {
+    REGISTER        = 0,
+    LOGIN           = 1,
+    LOGOUT          = 2,
+	SEND            = 3,
+    SEND_TO         = 4,
+    SEND_ANON       = 5,
+    SEND_TO_ANON    = 6,
+    SEND_FILE       = 7,
+    SEND_FILE_TO    = 8,
+    LIST            = 9,
+    DELAY           = 10
 };
 
 #endif

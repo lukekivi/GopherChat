@@ -1,0 +1,11 @@
+REGISTER mario foobar00
+LOGIN mario foobar00
+LOGOUT
+SEND hello there, how art thou?
+SEND2 lucas I would like to say hello.
+SENDA this is an anonymous message.
+SENDA2 steph hey mom, you smell bad.
+SENDF userInputTestFileOne.txt
+SENDF2 evan userInputTestFileTwo.txt
+LIST
+DELAY 3
