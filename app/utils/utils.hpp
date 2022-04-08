@@ -10,14 +10,13 @@
 #define MAX_MSG_SIZE 256
 #define MAX_TOTAL_SIZE 10000100
 #define MAX_INT_SIZE_LENGTH 8
-
-typedef unsigned char BYTE;
-
 /**
  * constants for registration, login, and logout messages
  */
-const char* FAILURE_MSG = "FAILURE";
-const char* OK_MSG = "OK";
+#define FAILURE_MSG "FAILURE"
+#define OK_MSG "OK"
+
+typedef unsigned char BYTE;
 
 /**
  * A struct to hold incoming message stats
