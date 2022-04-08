@@ -85,7 +85,7 @@ void Server::StartServer(int port) {
 				memset(&rStat[nConns], 0, sizeof(struct RecvStat));
 				sockMsgr->InitRecvStat(&rStat[nConns]);
 
-				SendGreeting(nConns);
+				// SendGreeting(nConns);
 			}
 		}
 		
@@ -126,7 +126,7 @@ void Server::RecvMessage(int i) {
 			// Just continue on
 			break;
 		case ERROR:
-			std::cout << "RecvMessage: ERROR" << std::endl;
+			std::cout << "RecvMessage: ERROR - index " << i << std::endl;
 			// Remove connection
 			RemoveConnection(i);
 			break;

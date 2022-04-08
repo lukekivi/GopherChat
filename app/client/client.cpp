@@ -46,7 +46,7 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			SendMessage(i);
 		}
 
-		int r = poll(peers, 1, -1);	
+		int r = poll(peers, nConns + RES_CONNS, -1);	
 		if (r < 0) {
 			log->Error("Invalid poll() return value.");
 		}			
@@ -112,6 +112,7 @@ int Client::BuildConn(struct sockaddr_in serverAddr) {
 
 	memset(&peers[nConns], 0, sizeof(pollfd));	
 	peers[nConns].events = POLLRDNORM;	
+	peers[nConns].revents = 0;
 
 	//Create the socket
 	peers[nConns].fd = socket(AF_INET, SOCK_STREAM, 0);
