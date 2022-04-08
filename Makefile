@@ -32,8 +32,8 @@ run_client: client_main
 	./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
-server_main: server_main.o server.o socket_messenger.o log.o log
-	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/server/server_main
+server_main: server_main.o server.o socket_messenger.o data_store.o log.o log
+	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/server/data_store.o -o build/server/server_main
 
 client_main: client_main.o client.o socket_messenger.o script_reader.o log.o log
 	g++ -pthread build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/utils/userInput/script_reader.o -o build/client/client_main
