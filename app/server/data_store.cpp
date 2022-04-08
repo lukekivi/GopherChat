@@ -1,4 +1,5 @@
 #include "data_store.hpp"
+#include <iostream> 
 
 Status DataStore::Register(const char* username, const char* password) {
     std::cout << "DataStore.Register()\n\t-user: " <<  username << std::endl;
