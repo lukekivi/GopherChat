@@ -4,6 +4,12 @@
 Status DataStore::Register(const char* username, const char* password) {
     std::cout << "DataStore.Register()\n\t-user: " <<  username << std::endl;
     std::cout << "\t-pwd: " << password << std::endl;
+
+    std::cout << "Current keys: " << std::endl;
+    for (auto const& element : m) {
+        std::cout << "\t-" << element.first << std::endl;
+    }
+
     if (m.find(username) != m.end()) {
         std::cout << "DataStore.Register() username existed." << std::endl;
         return FAILURE;
