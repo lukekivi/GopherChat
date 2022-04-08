@@ -16,6 +16,7 @@ class CommandData {
 
     ~CommandData() {
         delete[] args;
+        delete username;
     }
 
     Command getCommand() {
@@ -30,10 +31,19 @@ class CommandData {
         return numArgs;
     }
 
+    char* getUsername() {
+        return username;
+    }
+
+    void setUsername(char* username_) {
+        username = username_;
+    }
+
   private:
     Command command;
     char** args;
     int numArgs;
+    char* username = NULL;
 };
 
 #endif

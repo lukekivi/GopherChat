@@ -3,13 +3,12 @@
 #   * make run_server         #
 #   * make run_client         #
 #-- Tests:                    #
-#   * make run_all_tests      #
-#   * make run_log_tests      #
-#   * make run_socket_tests   #
+#   * make run_all_tests      # 
 ###############################
 
 port_num = 9010
-server_ip = 127.0.0.1
+server_ip = 54.163.12.33
+command_file = "commands.txt"
 
 build:
 	mkdir -p build
@@ -30,14 +29,14 @@ run_server: server_main
 	./build/server/server_main $(port_num)
 
 run_client: client_main
-	./build/client/client_main $(server_ip) $(port_num) 
+	./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
 server_main: server_main.o server.o socket_messenger.o log.o log
 	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/server/server_main
 
-client_main: client_main.o client.o socket_messenger.o log.o log
-	g++ -pthread build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o -o build/client/client_main
+client_main: client_main.o client.o socket_messenger.o script_reader.o log.o log
+	g++ -pthread build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/utils/userInput/script_reader.o -o build/client/client_main
 
 # OBJECTS
 server_main.o: app/server/server_main.cpp build
@@ -75,7 +74,7 @@ tests:
 	mkdir -p tests/objects/utils/socket
 	mkdir -p tests/objects/utils/userInput
 	
-run_all_tests: run_log_tests run_socket_tests run_user_input_tests
+run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests
 
 ## LOG TESTS
 run_log_tests: log_tests 
@@ -107,3 +106,14 @@ user_input_tests: user_input_main.o script_reader.o log.o tests
 
 user_input_main.o: testfiles/utils/userInput/user_input_main.cpp tests
 	g++ -c testfiles/utils/userInput/user_input_main.cpp -o tests/objects/utils/userInput/user_input_main.o
+
+
+## SOCKET MESSENGER / SCRIPT READER INTEGRATION TESTS
+run_command_conversion_tests: command_conversion_tests tests
+	./tests/utils/userInput/command_conversion_tests
+
+command_conversion_tests: command_conversion_main.o script_reader.o log.o socket_messenger.o tests
+	g++ tests/objects/utils/userInput/command_conversion_main.o build/objects/utils/userInput/script_reader.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/command_conversion_tests
+
+command_conversion_main.o: testfiles/utils/userInput/command_conversion_main.cpp tests
+	g++ -c testfiles/utils/userInput/command_conversion_main.cpp -o tests/objects/utils/userInput/command_conversion_main.o

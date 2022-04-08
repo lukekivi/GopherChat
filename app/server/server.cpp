@@ -15,6 +15,9 @@ Server::~Server() {
 }
 
 
+/**
+ * Start the GopherChat server. Connect clients and route messages.
+ */
 void Server::StartServer(int port) {
 	
 	int listenFD = socket(AF_INET, SOCK_STREAM, 0);
@@ -53,8 +56,8 @@ void Server::StartServer(int port) {
 	memset(peers, 0, sizeof(peers));	
 	peers[0].fd = listenFD;
 	peers[0].events = POLLRDNORM;	
-	memset(rStat, 0, sizeof(RECV_STAT));
-	memset(sStat, 0, sizeof(SEND_STAT));
+	memset(rStat, 0, sizeof(RecvStat));
+	memset(sStat, 0, sizeof(SendStat));
 	
 	int connID = 0;
 	while (1) {	//the main loop		
@@ -78,8 +81,8 @@ void Server::StartServer(int port) {
 				peers[nConns].events = POLLRDNORM;
 				peers[nConns].revents = 0;
 
-				memset(&sStat[nConns], 0, sizeof(struct SEND_STAT));
-				memset(&rStat[nConns], 0, sizeof(struct RECV_STAT));
+				memset(&sStat[nConns], 0, sizeof(struct SendStat));
+				memset(&rStat[nConns], 0, sizeof(struct RecvStat));
 				sockMsgr->InitRecvStat(&rStat[nConns]);
 
 				SendGreeting(nConns);
@@ -88,23 +91,8 @@ void Server::StartServer(int port) {
 		
 		for (int i=1; i<=nConns; i++) {
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {
-				
-				NbStatus status = sockMsgr->RecvMsgNB(&rStat[i], &peers[i]);
-
-				switch(status) {
-					case OKAY:
-						// successfully read from socket
-						std::cout << rStat[i].bodyStat.msg << std::endl;
-						sockMsgr->InitRecvStat(&rStat[i]);
-						break;
-					case BLOCKED:
-						// Just continue on
-						break;
-					case ERROR:
-						// Remove connection
-						RemoveConnection(i);
-						break;
-				}
+				std::cout << "Socket is readable" << std::endl;
+				RecvMessage(i);
 			}
 			
 			// a previously blocked data socket becomes writable
@@ -116,6 +104,43 @@ void Server::StartServer(int port) {
 }
 
 
+/**
+ * Receive a message from a TCP connection. The poll has deemed
+ * it readable
+ */
+void Server::RecvMessage(int i) {
+	
+	NbStatus status = sockMsgr->RecvMsgNB(&rStat[i], &peers[i]);
+	CommandData* commandData = NULL;
+
+	switch(status) {
+		case OKAY:
+			// successfully read from socket
+			std::cout << "RecvMessage: OK" << std::endl;
+			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg);
+			std::cout << commandData->getNumArgs() << std::endl;
+			std::cout << commandData->getArgs()[0] << std::endl;
+			std::cout << commandData->getArgs()[1] << std::endl;
+			sockMsgr->InitRecvStat(&rStat[i]);
+			delete commandData;
+
+			break;
+		case BLOCKED:
+			std::cout << "RecvMessage: BLOCKED" << std::endl;
+			// Just continue on
+			break;
+		case ERROR:
+			std::cout << "RecvMessage: ERROR" << std::endl;
+			// Remove connection
+			RemoveConnection(i);
+			break;
+	}
+}
+
+
+/**
+ * Send a non-blocking message to a client.
+ */
 void Server::SendMessage(int i) {
 	NbStatus status = sockMsgr->SendMsgNB(&sStat[i], &peers[i]);
 
@@ -134,6 +159,9 @@ void Server::SendMessage(int i) {
 }
 
 
+/**
+ * Send a welcome message to new clients.
+ */
 void Server::SendGreeting(int i) {
 	// prepare message
 	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(GREETING));
@@ -145,6 +173,10 @@ void Server::SendGreeting(int i) {
 	log->Info("Sent a greeting!");
 }
 
+
+/**
+ * Set socket to be non-blocking
+ */
 void Server::SetNonBlockIO(int fd) {
 	int val = fcntl(fd, F_GETFL, 0);
 	if (fcntl(fd, F_SETFL, val | O_NONBLOCK) != 0) {
@@ -153,6 +185,10 @@ void Server::SetNonBlockIO(int fd) {
 	}
 }
 
+
+/**
+ * remove a connection and cleanup its data
+ */
 void Server::RemoveConnection(int i) {
 	close(peers[i].fd);	
 	delete rStat[i].sizeStat.msg;
@@ -161,8 +197,8 @@ void Server::RemoveConnection(int i) {
 
 	if (i < nConns) {	
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
-		memmove(rStat + i, rStat + i + 1, (nConns-i) * sizeof(struct RECV_STAT));
-		memmove(sStat + i, sStat + i + 1, (nConns-i) * sizeof(struct SEND_STAT));
+		memmove(rStat + i, rStat + i + 1, (nConns-i) * sizeof(struct RecvStat));
+		memmove(sStat + i, sStat + i + 1, (nConns-i) * sizeof(struct SendStat));
 	}
 	nConns--;
 }

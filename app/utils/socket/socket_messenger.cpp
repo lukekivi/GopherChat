@@ -5,13 +5,19 @@
 #include <iostream>
 #include <poll.h>
 
-const int NUM_BYTES = 4;
 const int MAX_VALUE = 256;
 
-BYTE* SocketMessenger::IntToByte(int value) {
-    BYTE* arr = new BYTE[NUM_BYTES];
 
-    for (int i = 0; i < NUM_BYTES; i++) {
+/**
+ * @brief Convert an int to a byte array of size 4
+ * 
+ * @param value 
+ * @return malloc'd BYTE* array
+ */
+BYTE* SocketMessenger::IntToByte(int value) {
+    BYTE* arr = new BYTE[INT_BYTES];
+
+    for (int i = 0; i < INT_BYTES; i++) {
         if (value < MAX_VALUE) {
             arr[i] = (BYTE) value;
             value = 0;
@@ -24,11 +30,17 @@ BYTE* SocketMessenger::IntToByte(int value) {
 }
 
 
+/**
+ * @brief Convert a size 4 byte array into an int
+ * 
+ * @param arr 
+ * @return int representation
+ */
 int SocketMessenger::ByteToInt(BYTE* arr) {
     int value = 0;
     int multiplier = 1;
 
-    for (int i = 0; i < NUM_BYTES; i++) {
+    for (int i = 0; i < INT_BYTES; i++) {
         value += ((int) arr[i]) * multiplier;
 
         multiplier *= MAX_VALUE;
@@ -38,12 +50,25 @@ int SocketMessenger::ByteToInt(BYTE* arr) {
 }
 
 
+/**
+ * @brief Convert a character array into a byte array.
+ * 
+ * @param str 
+ * @return BYTE* representation
+ */
 BYTE* SocketMessenger::CharToByte(const char* str) {
     return reinterpret_cast<BYTE*>(const_cast<char*>(str));
 }
 
 
-NbStatus SocketMessenger::SendMsgNB(struct SEND_STAT* sStat, struct pollfd* pPeer) {	
+/**
+ * @brief Send a message over a socket
+ * 
+ * @param sStat msg data container
+ * @param pPeer socket data
+ * @return status
+ */
+NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer) {	
 
 	std::cout << "Sending size: " << sStat->size << std::endl;
 
@@ -54,7 +79,7 @@ NbStatus SocketMessenger::SendMsgNB(struct SEND_STAT* sStat, struct pollfd* pPee
 		if (n >= 0) {
 			sStat->nSent += n;
 		} else if (n < 0 && (errno == ECONNRESET || errno == EPIPE)) {
-			log->Info("Connection closed.");
+			log->Info("SendNB: Connection closed.");
 			close(pPeer->fd);
 			return ERROR;
 		} else if (n < 0 && (errno == EWOULDBLOCK)) {
@@ -63,7 +88,7 @@ NbStatus SocketMessenger::SendMsgNB(struct SEND_STAT* sStat, struct pollfd* pPee
 			pPeer->events |= POLLWRNORM; 
 			return BLOCKED; 
 		} else {
-			log->Error("Unexpected send error %d: %s", errno, strerror(errno));
+			log->Error("SendNB: Unexpected send error %d: %s", errno, strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -74,7 +99,13 @@ NbStatus SocketMessenger::SendMsgNB(struct SEND_STAT* sStat, struct pollfd* pPee
 }
 
 
-void SocketMessenger::BuildSendMsg(struct SEND_STAT* sStat, const BYTE* body) {
+/**
+ * @brief Build SEND_STAT object based off of a msg
+ * 
+ * @param sStat container
+ * @param msg to be sent
+ */
+void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body) {
 	int bodySize = strlen((char*) body);
 
 	// msg size as a byte array for sending across socket
@@ -92,7 +123,10 @@ void SocketMessenger::BuildSendMsg(struct SEND_STAT* sStat, const BYTE* body) {
 }
 
 
-void SocketMessenger::InitSendStat(struct SEND_STAT* sStat) {
+/**
+ * @brief initialize SEND_STAT
+ */
+void SocketMessenger::InitSendStat(struct SendStat* sStat) {
 	delete sStat->msg;
 	sStat->msg = nullptr;
 	sStat->nSent = 0;
@@ -100,7 +134,15 @@ void SocketMessenger::InitSendStat(struct SEND_STAT* sStat) {
 }
 
 
-NbStatus SocketMessenger::RecvMsgNB(struct RECV_STAT* rStat, struct pollfd* pPeer) {
+/**
+ * @brief Receive a message from a socket. Expects body to be
+ * prepended with a 4 byte size
+ * 
+ * @param rStat container for received message data
+ * @param pPeer socket information
+ * @return status
+ */
+NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer) {
 	
 	/**
 	 * Recieve size of body. An integer represented by 4 BYTEs.
@@ -112,8 +154,7 @@ NbStatus SocketMessenger::RecvMsgNB(struct RECV_STAT* rStat, struct pollfd* pPee
 			if (rStat->sizeStat.nRecv == rStat->sizeStat.size) {
 				// size read completely
 				SetRecvStatWithSize(rStat);
-				std::cout << "Finished reading size: " 
-					<< rStat->sizeStat.size << std::endl;
+				std::cout << "Finished reading size: " << rStat->sizeStat.size << std::endl;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
 				exit(EXIT_FAILURE);
@@ -128,8 +169,7 @@ NbStatus SocketMessenger::RecvMsgNB(struct RECV_STAT* rStat, struct pollfd* pPee
 
 		if (status == OKAY) {
 			if (rStat->bodyStat.nRecv == rStat->bodyStat.size) {
-				std::cout << "Finished reading body: " 
-					<< rStat->bodyStat.size << std::endl;
+				std::cout << "Finished reading body: " << rStat->bodyStat.size << std::endl;
 				return status;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
@@ -145,7 +185,10 @@ NbStatus SocketMessenger::RecvMsgNB(struct RECV_STAT* rStat, struct pollfd* pPee
 }
 
 
-void SocketMessenger::InitRecvStat(struct RECV_STAT* rStat) {
+/**
+ * @brief initialize RECV_STAT to wait for a message
+ */
+void SocketMessenger::InitRecvStat(struct RecvStat* rStat) {
 	// prep size struct
 	rStat->sizeIsSet = false;
 	rStat->sizeStat.size = INT_BYTES;
@@ -161,14 +204,21 @@ void SocketMessenger::InitRecvStat(struct RECV_STAT* rStat) {
 }
 
 
-NbStatus SocketMessenger::RecvNB(struct MSG_STAT* mStat, int sockfd) {
+/**
+ * @brief Generic receive.
+ * 
+ * @param mStat container for received data.
+ * @param sockfd
+ * @return status
+ */
+NbStatus SocketMessenger::RecvNB(struct MsgStat* mStat, int sockfd) {
 	int n = recv(sockfd, mStat->msg + mStat->nRecv, mStat->size - mStat->nRecv, 0);	
 
 	if (n > 0) {
 		mStat->nRecv += n;
 		return OKAY;
 	} else if (n == 0 || (n < 0 && errno == ECONNRESET)) {
-		log->Info("Connection closed.");
+		log->Info("RecvNB: Connection closed.");
 		close(sockfd);
 		return ERROR;
 	} else if (n < 0 && (errno == EWOULDBLOCK)) { 
@@ -176,13 +226,17 @@ NbStatus SocketMessenger::RecvNB(struct MSG_STAT* mStat, int sockfd) {
 		//OS will notify us when we can read
 		return BLOCKED; 
 	} else {
-		log->Error("Unexpected recv error %d: %s.", errno, strerror(errno));
+		log->Error("RecvNB: Unexpected recv error %d: %s.", errno, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }
 
 
-void SocketMessenger::SetRecvStatWithSize(struct RECV_STAT* rStat) {
+/**
+ * @brief Set the body portion of RECV_STAT with information
+ * from the size portion.
+ */
+void SocketMessenger::SetRecvStatWithSize(struct RecvStat* rStat) {
 	rStat->sizeIsSet = true;
 	rStat->bodyStat.size = ByteToInt(rStat->sizeStat.msg);
 	rStat->bodyStat.msg = new BYTE[rStat->bodyStat.size];
@@ -191,4 +245,174 @@ void SocketMessenger::SetRecvStatWithSize(struct RECV_STAT* rStat) {
 
 void SocketMessenger::SetLog(Log* log) {
     this->log = new Log(log);
+}
+
+
+BYTE* SocketMessenger::CommandDataToByte(CommandData* command) {
+	int numArgs = command->getNumArgs();
+	char* username = command->getUsername();
+
+	char** args = command->getArgs();
+	int lens[numArgs];
+
+	/**
+	 * total length includes
+	 * - integer representation of command enum
+	 * - optional username field of length 8
+	 * - integer preceding each arg to represent arg length
+	 * - length of each arg
+	 */
+	int totalLen = (numArgs + 1) * INT_BYTES + MAX_USRNAME_SIZE;
+	for (int i = 0; i < numArgs; i++) {
+		lens[i] = strlen(args[i]);
+		totalLen += lens[i];
+	}
+
+	BYTE* body = new BYTE[totalLen];
+	BYTE* cmd = IntToByte(command->getCommand());
+	
+	int i = 0;
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = cmd[j];
+		i++;
+	}
+
+	for (int j = 0; j < MAX_USRNAME_SIZE; j++) {
+		if (username == NULL || j > strlen(username) - 1) {
+			body[i] = '-';
+		} else {
+			body[i] = username[j];
+		}
+		i++;
+	}
+
+	for (int j = 0; j < numArgs; j++) {
+		BYTE* len = IntToByte(lens[j]);
+		BYTE* arg = CharToByte(args[j]);
+		for (int k = 0; k < INT_BYTES; k++) {
+			body[i] = len[k];
+			i++;
+		}
+
+		for (int k = 0; k < lens[j]; k++) {
+			body[i] =  arg[k];
+			i++;
+		}
+	}
+	return body;
+}
+
+CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
+	CommandData* commandData = NULL;
+	Command command = ReadCommand(body);
+
+	char* username = ReadUsername(body);
+	int numArgs = 0;
+	switch(command) {
+		case REGISTER:
+			numArgs = 2;
+			break;
+		case LOGIN:
+			numArgs = 2;
+			break;
+		case LOGOUT:
+			break;
+		case SEND:
+			numArgs = 1;
+			break;
+		case SEND_TO:
+			numArgs = 2;
+			break;
+		case SEND_ANON:
+			numArgs = 1;
+			break;
+		case SEND_TO_ANON:
+			numArgs = 2;
+			break;
+		case SEND_FILE:
+			numArgs = 1;
+			break;
+		case SEND_FILE_TO:
+			numArgs = 2;
+			break;
+		case LIST:
+			break;
+		case DELAY:
+			numArgs = 1;
+			break;
+		default:
+			log->Error("Invalid COMMAND.");
+			exit(EXIT_FAILURE);
+	}
+
+	commandData = new CommandData(command, ReadArgs(body, numArgs), numArgs);
+
+	return commandData;
+}
+
+
+Command SocketMessenger::ReadCommand(BYTE* body) {
+	BYTE cmd[4];
+
+	int i = 0;
+	for (int j = 0; j < 4; j++) {
+		cmd[j] = body[i];
+		i++;
+	}
+
+	return static_cast<Command>(ByteToInt(cmd));
+}
+
+
+/**
+ * Username always comes after the Command enum which is of size INT_BYTES
+ */
+char* SocketMessenger::ReadUsername(BYTE* body) {
+
+	if (body[INT_BYTES] == '-') {
+		return NULL;
+	}
+
+	std::string temp;
+
+	for (int i = INT_BYTES; i < INT_BYTES + MAX_USRNAME_SIZE; i++) {
+		char letter = (char) body[i];
+		if (letter == '-') {
+			break;
+		} else {
+			temp.push_back(letter);
+		}
+	}
+
+	char* username = new char[temp.length()+1];
+	strcpy(username, temp.c_str());
+
+	return username;
+}
+
+char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
+	if (numArgs == 0) {
+		return NULL;
+	}
+
+	int offset = INT_BYTES + MAX_USRNAME_SIZE;
+	int sizes[numArgs];
+	char** args = new char*[numArgs];
+
+	for (int i = 0; i < numArgs; i++) {
+		BYTE* num = body + offset;
+		sizes[i] = ByteToInt(num);
+		offset += INT_BYTES;
+
+		char* arg = new char[sizes[i]+1];
+		arg[sizes[i]] = '\0';
+
+		for (int j = 0; j < sizes[i]; j++) {
+			arg[j] = (char) body[offset];
+			offset++;
+		}
+		args[i] = arg;
+	}
+
+	return args;
 }

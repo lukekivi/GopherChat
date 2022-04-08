@@ -8,6 +8,8 @@
 #define MIN_PWD_SIZE 4
 #define MAX_PWD_SIZE 8
 #define MAX_MSG_SIZE 256
+#define MAX_TOTAL_SIZE 10000100
+#define MAX_INT_SIZE_LENGTH 8
 
 typedef unsigned char BYTE;
 
@@ -17,7 +19,7 @@ typedef unsigned char BYTE;
  * - nRecv: the amount received thus far
  * - size: the size of msg
  */
-struct MSG_STAT {
+struct MsgStat {
 	BYTE* msg;
 	int nRecv;
 	int size;
@@ -29,10 +31,10 @@ struct MSG_STAT {
  * - sizeIsSet: knows whether sizeStat is set or not
  * - bodyStat: contains the body
  */
-struct RECV_STAT {
-	struct MSG_STAT sizeStat;
+struct RecvStat {
+	struct MsgStat sizeStat;
 	bool sizeIsSet;
-	struct MSG_STAT bodyStat;
+	struct MsgStat bodyStat;
 };
 
 /**
@@ -41,7 +43,7 @@ struct RECV_STAT {
  * - nRecv: the amount sent thus far
  * - size: the size of msg
  */
-struct SEND_STAT {
+struct SendStat {
 	BYTE* msg;
 	int nSent;
 	int size;
@@ -57,6 +59,19 @@ enum NbStatus {
 	BLOCKED,
 	ERROR,
 	OKAY
+};
+
+
+/**
+ * Status to ACK client messages.
+ * - OK: everything went ok
+ * - NO_USER: No user signed in
+ * - ERROR: an error occurred
+ */
+enum Status {
+	OK,
+	NO_USER,
+	FAILURE
 };
 
 /**

@@ -5,86 +5,87 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <signal.h>
-#include <thread>
-#include <poll.h>
 #include <fcntl.h>
-
-#define MAX_REQUEST_SIZE 10000000
 
 Client::Client(Log* log) { 
 	SetLog(log); 
-	server.fd = -1;
 	sockMsgr = new SocketMessenger(log);
 }
 
 Client::~Client() {
-	if (server.fd != -1) {
-		close(server.fd); 
-	}
-
 	delete log;
 	delete sockMsgr;
 }
 
+void Client::StartClient(const char* serverIp, int port, std::vector<CommandData*> commands) {
+	log->Info("There are %d commands to execute.", commands.size());
+	int commandIndex = 0;
 
-void Client::StartClient(const char* serverIp, int port) {
 	struct sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));	
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons((unsigned short) port);
 	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
-	signal(SIGPIPE, SIG_IGN);
 
-	memset(&server, 0, sizeof(server));	
-	server.events = POLLRDNORM;	
-	memset(&mainRStat, 0, sizeof(struct RECV_STAT));
-	sockMsgr->InitRecvStat(&mainRStat);
+	// initialize UI thread peers[0]
+	BuildConn(serverAddr);
 
-	//Create the socket
-	server.fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server.fd == -1) {
-		log->Error("Cannot create socket.");		
-	}
-
-	//Connect to server
-	if (connect(server.fd, (const struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
-		log->Error("Cannot connect to server %s:%d.", serverIp, port);
-		exit(EXIT_FAILURE);
-	}
-
-	SetNonBlockIO(server.fd);
-
-	log->Info("Connected to server %s:%d.", serverIp, port);
-	
 	while (1) {	
-		//monitor the listening sock and data socks, nConn+1 in total
-		int r = poll(&server, 1, -1);	
+
+		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
+			int i = BuildConn(serverAddr);
+			activeCmds[i] = commands.at(commandIndex);
+			commandIndex++;
+
+			std::cout << activeCmds[i]->getCommand() << std::endl;
+			std::cout << activeCmds[i]->getArgs()[0] << std::endl;
+
+			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i]);
+			sockMsgr->BuildSendMsg(&sStats[i], body);
+			SendMessage(i);
+		}
+
+		int r = poll(peers, 1, -1);	
 		if (r < 0) {
 			log->Error("Invalid poll() return value.");
 		}			
-			
-		struct sockaddr_in clientAddr;
-		socklen_t clientAddrLen = sizeof(clientAddr);	
-				
-		if (server.revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
-			// recv request
-			NbStatus status = sockMsgr->RecvMsgNB(&mainRStat, &server);
 
-				switch(status) {
-					case OKAY:
-						// successfully read from socket
-						std::cout << mainRStat.bodyStat.msg << std::endl;
-						sockMsgr->InitRecvStat(&mainRStat);
-						break;
-					case BLOCKED:
-						// Just continue on
-						break;
-					case ERROR:
-						exit(EXIT_FAILURE);
-				}
+		// Read in UI
+		CheckUi();
+
+		for (int i = RES_CONNS; i < nConns; i++) {
+			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
+				RecvMessage(i);
+			}
+
+			if (peers[i].revents & POLLWRNORM) {
+				SendMessage(i);
+			}
 		}
 	}
 }
+
+
+void Client::CheckUi() {
+	if (peers[0].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
+		// recv request
+		NbStatus status = sockMsgr->RecvMsgNB(&rStats[0], &peers[0]);
+
+		switch(status) {
+			case OKAY:
+				// successfully read from socket
+				std::cout << "UI: " << rStats[0].bodyStat.msg << std::endl;
+				sockMsgr->InitRecvStat(&rStats[0]);
+				break;
+			case BLOCKED:
+				// Just continue on
+				break;
+			case ERROR:
+				exit(EXIT_FAILURE);
+		}
+	}
+}
+
 
 void Client::SetNonBlockIO(int fd) {
 	int val = fcntl(fd, F_GETFL, 0);
@@ -95,21 +96,106 @@ void Client::SetNonBlockIO(int fd) {
 }
 
 
-void Client::SendMessage(struct SEND_STAT* sStat, struct pollfd* server) {
-	NbStatus status = sockMsgr->SendMsgNB(sStat, server);
+int Client::BuildConn(struct sockaddr_in serverAddr) {
+	if (nConns > MAX_CONNS) {
+		log->Error("Too many conns.");
+		exit(EXIT_FAILURE);
+	}
+
+	memset(&rStats[nConns], 0, sizeof(RecvStat));
+	memset(&sStats[nConns], 0, sizeof(SendStat));
+	sockMsgr->InitRecvStat(&rStats[nConns]);
+	sockMsgr->InitSendStat(&sStats[nConns]);
+
+	signal(SIGPIPE, SIG_IGN);
+
+	memset(&peers[nConns], 0, sizeof(pollfd));	
+	peers[nConns].events = POLLRDNORM;	
+
+	//Create the socket
+	peers[nConns].fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (peers[nConns].fd == -1) {
+		log->Error("Cannot create socket.");		
+	}
+
+	//Connect to server
+	if (connect(peers[nConns].fd, (const struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
+		log->Error("Cannot connect to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+		exit(EXIT_FAILURE);
+	}
+
+	SetNonBlockIO(peers[nConns].fd);
+
+	log->Info("Connected to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+
+	nConns++;
+
+	return nConns-1;
+}
+
+
+/**
+ * Receive a message from a TCP connection. The poll has deemed
+ * it readable
+ */
+void Client::RecvMessage(int i) {
+	NbStatus status = sockMsgr->RecvMsgNB(&rStats[i], &peers[i]);
 
 	switch(status) {
 		case OKAY:
-			// Reset sStat
-			sockMsgr->InitSendStat(sStat);
+			// successfully read from socket
+			std::cout << rStats[i].bodyStat.msg <<  std::endl;
+			RemoveConnection(i);
 			break;
 		case BLOCKED:
 			// Just continue on
 			break;
 		case ERROR:
-			exit(EXIT_FAILURE);
+			// Remove connection
+			RemoveConnection(i);
+			break;
 	}
 }
+
+
+/**
+ * Send a non-blocking message to a client.
+ */
+void Client::SendMessage(int i) {
+	NbStatus status = sockMsgr->SendMsgNB(&sStats[i], &peers[i]);
+
+	switch(status) {
+		case OKAY:
+			// Reset sStat
+			sockMsgr->InitSendStat(&sStats[i]);
+			break;
+		case BLOCKED:
+			// Just continue on
+			break;
+		case ERROR:
+			RemoveConnection(i);
+			break;
+	}
+}
+
+
+/**
+ * remove a connection and cleanup its data
+ */
+void Client::RemoveConnection(int i) {
+	close(peers[i].fd);	
+	delete rStats[i].sizeStat.msg;
+	delete rStats[i].bodyStat.msg;
+	delete sStats[i].msg;
+
+	if (i < nConns) {	
+		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
+		memmove(rStats + i, rStats + i + 1, (nConns-i) * sizeof(struct RecvStat));
+		memmove(sStats + i, sStats + i + 1, (nConns-i) * sizeof(struct SendStat));
+	}
+	nConns--;
+}
+
 
 void Client::SetLog(Log* log) {
     this->log = new Log(log);

@@ -1,5 +1,6 @@
 
 #include "../utils/log.hpp"
+#include "../utils/userInput/script_reader.hpp"
 #include "client.hpp"
 #include <stdlib.h>
 #include <time.h>
@@ -13,18 +14,20 @@ int main(int argc, char **argv) {
 
     Log* log = StartLog();
 
-    if (argc != 3) {
-        log->Info("Commmand arguments should be: [server ip address] [server port number] [*optional* script txt file]");
+    if (argc != 4) {
+        log->Info("Commmand arguments should be: [server ip address] [server port number] [script txt file]");
         exit(EXIT_SUCCESS);
     }
 
     const char* serverIp = argv[1];
     int port = atoi(argv[2]);
-    char* scriptFd = (argc == 4) ? argv[3] : nullptr;
+    char* scriptFileName = argv[3];
+
+    ScriptReader reader(scriptFileName, log);
 
     Client client(log);
 
-    client.StartClient(serverIp, port);
+    client.StartClient(serverIp, port, reader.getCommands());
 
     delete log;
 
@@ -34,5 +37,6 @@ int main(int argc, char **argv) {
 Log* StartLog() {
     srand(time(NULL));
     std::string semiUniqueId = std::to_string(rand() % 10000);
+    std::cout << "Log id: " << semiUniqueId << std::endl;
     return new Log(LOG_FILE_PREFIX + semiUniqueId + ".txt");
 }

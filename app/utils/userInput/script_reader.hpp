@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include "../utils.hpp"
-#include "../../data/CommandData.hpp"
+#include "../../data/command_data.hpp"
 #include "../log.hpp"
 #include <vector>
 
