@@ -7,7 +7,7 @@ Status DataStore::Register(const char* username, const char* password) {
 
     std::cout << "Current keys: " << std::endl;
     for (auto const& element : m) {
-        std::cout << "\t-" << element.first << std::endl;
+        std::cout << "\t-\"" << element.first << "\"" << std::endl;
     }
 
     if (m.find(username) != m.end()) {
