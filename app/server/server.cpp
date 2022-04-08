@@ -189,7 +189,7 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 
 	switch (commandData->getCommand()) {
 		case REGISTER:
-			SendOk(i);
+			HandleRegister(i, commandData);
 			break;
 		case LOGIN:
 			break;
@@ -218,14 +218,42 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 }
 
 
+void Server::HandleRegister(int i, CommandData* commandData) {
+	std::cout << "Registering " << commandData->getArgs()[0] << std::endl;
+	if (commandData->getNumArgs() != 2) {
+		log->Error("Registration requires 2 args: a username and a password.");
+		exit(EXIT_FAILURE);
+	}
+
+	const char* username = commandData->getArgs()[0];
+	const char* password = commandData->getArgs()[1];
+	if (ds.Register(username, password) == OK) {
+		SendOk(i);
+	} else {
+		SendFailure(i);
+	}
+}
+
+
 void Server::SendOk(int i) {
-	const char* ok = "OK";
 	// prepare message
-	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(ok), strlen(ok));
+	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(OK_MSG), strlen(OK_MSG));
 
     if (sStat[i].size != 0) {
 		SendMessage(i);
 	}
 	
-	log->Info("Sent a OK!");
+	log->Info("Sent an OK!");
+}
+
+
+void Server::SendFailure(int i) {
+	// prepare message
+	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(FAILURE_MSG), strlen(FAILURE_MSG));
+
+    if (sStat[i].size != 0) {
+		SendMessage(i);
+	}
+	
+	log->Info("Sent a FAILURE!");
 }

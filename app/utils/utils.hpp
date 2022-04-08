@@ -14,6 +14,12 @@
 typedef unsigned char BYTE;
 
 /**
+ * constants for registration, login, and logout messages
+ */
+const char* FAILURE_MSG = "FAILURE";
+const char* OK_MSG = "OK";
+
+/**
  * A struct to hold incoming message stats
  * - msg: a container for reading in data from socket
  * - nRecv: the amount received thus far

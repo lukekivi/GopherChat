@@ -17,6 +17,8 @@
 #include <signal.h>
 #include "../utils/socket/socket_messenger.hpp"
 #include "../data/command_data.hpp"
+#include "data_store.hpp"
+#include "../utils/utils.hpp"
 
 #define MAX_REQUEST_SIZE 10000000
 #define MAX_CONCURRENCY_LIMIT 64
@@ -34,11 +36,14 @@ class Server {
     void SendMessage(int i);
     void SetNonBlockIO(int fd);
     void RemoveConnection(int i);
-    void HandleReceivedCommand(int i, CommandData* command);
+    void HandleReceivedCommand(int i, CommandData* commandData);
+    void HandleRegister(int i, CommandData* commandData);
     void SendOk(int i);
+    void SendFailure(int i);
     
     Log* log;
     SocketMessenger* sockMsgr;
+    DataStore ds;
 
     int nConns;	                                     // total # of data sockets
     struct pollfd peers[MAX_CONCURRENCY_LIMIT+1];	   // sockets to be monitored by poll()
