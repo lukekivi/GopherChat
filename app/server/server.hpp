@@ -41,7 +41,7 @@ class Server {
     void SendOk(int i);
     void SendFailure(int i);
     
-    bool IsUiPrFileConn(int i);
+    bool IsUiOrFileConn(int i);
 
     Log* log;
     SocketMessenger* sockMsgr;

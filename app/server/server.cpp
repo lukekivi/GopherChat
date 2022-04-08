@@ -240,7 +240,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 
 void Server::SendOk(int i) {
 	// prepare message
-	sockMsgr->InitSendMsg(&sStat[i]);
+	sockMsgr->InitSendStat(&sStat[i]);
 	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(OK_MSG), strlen(OK_MSG));
 
 	SendMessage(i);
@@ -251,7 +251,7 @@ void Server::SendOk(int i) {
 
 void Server::SendFailure(int i) {
 	// prepare message
-	sockMsgr->InitSendMsg(&sStat[i]);
+	sockMsgr->InitSendStat(&sStat[i]);
 	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(FAILURE_MSG), strlen(FAILURE_MSG));
 
 	SendMessage(i);
@@ -260,7 +260,7 @@ void Server::SendFailure(int i) {
 }
 
 
-bool Server::IsUiPrFileConn(int i) {
+bool Server::IsUiOrFileConn(int i) {
 	// check if conn[i] is a UI/File conn
 	return false;
 }
