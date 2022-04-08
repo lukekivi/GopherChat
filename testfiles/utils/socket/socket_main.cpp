@@ -15,7 +15,7 @@ int main() {
         BYTE* arr = sockMsgr.IntToByte(tests[i]);
         int value = sockMsgr.ByteToInt(arr);
         bool truthValue = (tests[i] == value);
-        delete arr;
+        delete[] arr;
 
         if (!truthValue) {
             std::cout << "socket messenger tests failed" << std::endl;

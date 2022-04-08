@@ -41,6 +41,8 @@ class Server {
     void SendOk(int i);
     void SendFailure(int i);
     
+    bool IsUiPrFileConn(int i);
+
     Log* log;
     SocketMessenger* sockMsgr;
     DataStore ds;

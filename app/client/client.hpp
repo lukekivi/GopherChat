@@ -28,6 +28,8 @@ class Client {
         void SendMessage(int i);
         void RemoveConnection(int i);
         BYTE* CommandToByte(CommandData* command);
+        void HandleResponse(BYTE* body, int len);
+        bool IsUiOrFileConn(int i);
 
         int nConns = 0;
         pollfd peers[MAX_CONNS];

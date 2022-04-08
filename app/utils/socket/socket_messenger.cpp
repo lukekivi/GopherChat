@@ -70,7 +70,7 @@ BYTE* SocketMessenger::CharToByte(const char* str) {
  */
 NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer) {	
 
-	std::cout << "Sending size: " << sStat->size << std::endl;
+	// std::cout << "Sending size: " << sStat->size << std::endl;
 
 	while (sStat->nSent < sStat->size) {
 		//connStat keeps tracks of how many bytes have been sent, allowing us to "resume" 
@@ -93,7 +93,7 @@ NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer
 		}
 	}
 
-	std::cout << "Message sent." << std::endl;
+	// std::cout << "Message sent." << std::endl;
 	pPeer->events &= ~POLLWRNORM;
 	return OKAY;
 }
@@ -108,8 +108,8 @@ NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer
 void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body, int len) {
 	// msg size as a byte array for sending across socket
 	BYTE* arr = IntToByte(len);
+	delete[] sStat->msg;
 
-	delete sStat->msg;
 	sStat->msg = new BYTE[len + INT_BYTES];
 	sStat->size = len + INT_BYTES;
 	sStat->nSent = 0;
@@ -117,7 +117,7 @@ void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body, int
 	// prepend size onto body and add it to sStat.msg
 	std::copy(body, body + len, std::copy(arr, arr + INT_BYTES, sStat->msg));
 
-	delete arr;
+	delete[] arr;
 }
 
 
@@ -125,8 +125,15 @@ void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body, int
  * @brief initialize SEND_STAT
  */
 void SocketMessenger::InitSendStat(struct SendStat* sStat) {
-	delete sStat->msg;
-	sStat->msg = nullptr;
+	sStat->msg = NULL;
+	sStat->nSent = 0;
+	sStat->size = -1;
+}
+
+
+void SocketMessenger::RefreshSendStat(struct SendStat* sStat) {
+	delete[] sStat->msg;
+	sStat->msg = NULL;
 	sStat->nSent = 0;
 	sStat->size = -1;
 }
@@ -141,7 +148,7 @@ void SocketMessenger::InitSendStat(struct SendStat* sStat) {
  * @return status
  */
 NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer) {
-	
+
 	/**
 	 * Recieve size of body. An integer represented by 4 BYTEs.
 	 */
@@ -152,7 +159,7 @@ NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer
 			if (rStat->sizeStat.nRecv == rStat->sizeStat.size) {
 				// size read completely
 				SetRecvStatWithSize(rStat);
-				std::cout << "Finished reading size: " << rStat->sizeStat.size << std::endl;
+				// std::cout << "Finished reading size: " << rStat->sizeStat.size << std::endl;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
 				exit(EXIT_FAILURE);
@@ -167,7 +174,7 @@ NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer
 
 		if (status == OKAY) {
 			if (rStat->bodyStat.nRecv == rStat->bodyStat.size) {
-				std::cout << "Finished reading body: " << rStat->bodyStat.size << std::endl;
+				// std::cout << "Finished reading body: " << rStat->bodyStat.size << std::endl;
 				return status;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
@@ -191,12 +198,12 @@ void SocketMessenger::InitRecvStat(struct RecvStat* rStat) {
 	rStat->sizeIsSet = false;
 	rStat->sizeStat.size = INT_BYTES;
 	rStat->sizeStat.nRecv = 0;
-	delete rStat->sizeStat.msg;
+	delete[] rStat->sizeStat.msg;
 	rStat->sizeStat.msg = new BYTE[INT_BYTES];
 
 	// prep body struct
 	rStat->bodyStat.nRecv = 0;
-	delete rStat->bodyStat.msg;
+	delete[] rStat->bodyStat.msg;
 	rStat->bodyStat.msg = nullptr;
 	rStat->bodyStat.size = -1;
 }
@@ -413,4 +420,15 @@ char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
 	}
 
 	return args;
+}
+
+
+char* SocketMessenger::ByteToChar(BYTE* body, int len) {
+	char* msg = new char[len+1];
+
+	for (int i = 0; i < len; i++) {
+		msg[i] = body[i];
+	}
+	msg[len] = '\0';
+	return msg;
 }

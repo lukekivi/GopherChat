@@ -17,12 +17,15 @@ class SocketMessenger {
     NbStatus SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer);
     void BuildSendMsg(struct SendStat* sStat, const BYTE* msg, int len);
     void InitSendStat(struct SendStat* sStat);
+    void RefreshSendStat(struct SendStat* sStat);
 
     NbStatus RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer);
     void InitRecvStat(struct RecvStat* rStat); 
 
     BYTE* CommandDataToByte(CommandData* command, int* len);
     CommandData* ByteToCommandData(BYTE* body);
+
+    char* ByteToChar(BYTE* body, int len);
     
   private:
     NbStatus RecvNB(struct MsgStat* mStat, int sockfd);

@@ -93,6 +93,9 @@ void Server::StartServer(int port) {
 			// a previously blocked data socket becomes writable
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);
+				if (!IsUiOrFileConn(i)) {
+					RemoveConnection(i);
+				}
 			}
 		}
 	}	
@@ -139,7 +142,7 @@ void Server::SendMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// Reset sStat
-			sockMsgr->InitSendStat(&sStat[i]);
+			sockMsgr->RefreshSendStat(&sStat[i]);
 			break;
 		case BLOCKED:
 			// Just continue on
@@ -168,9 +171,9 @@ void Server::SetNonBlockIO(int fd) {
  */
 void Server::RemoveConnection(int i) {
 	close(peers[i].fd);	
-	delete rStat[i].sizeStat.msg;
-	delete rStat[i].bodyStat.msg;
-	delete sStat[i].msg;
+	delete[] rStat[i].sizeStat.msg;
+	delete[] rStat[i].bodyStat.msg;
+	delete[] sStat[i].msg;
 
 	if (i < nConns) {	
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
@@ -237,11 +240,10 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 
 void Server::SendOk(int i) {
 	// prepare message
+	sockMsgr->InitSendMsg(&sStat[i]);
 	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(OK_MSG), strlen(OK_MSG));
 
-    if (sStat[i].size != 0) {
-		SendMessage(i);
-	}
+	SendMessage(i);
 	
 	log->Info("Sent an OK!");
 }
@@ -249,11 +251,16 @@ void Server::SendOk(int i) {
 
 void Server::SendFailure(int i) {
 	// prepare message
+	sockMsgr->InitSendMsg(&sStat[i]);
 	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(FAILURE_MSG), strlen(FAILURE_MSG));
 
-    if (sStat[i].size != 0) {
-		SendMessage(i);
-	}
+	SendMessage(i);
 	
 	log->Info("Sent a FAILURE!");
+}
+
+
+bool Server::IsUiPrFileConn(int i) {
+	// check if conn[i] is a UI/File conn
+	return false;
 }

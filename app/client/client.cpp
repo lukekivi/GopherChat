@@ -57,7 +57,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
 				RecvMessage(i);
 			}
-
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);
 			}
@@ -145,8 +144,12 @@ void Client::RecvMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// successfully read from socket
-			std::cout << rStats[i].bodyStat.msg <<  std::endl;
-			RemoveConnection(i);
+			if (!IsUiOrFileConn(i)) {
+				HandleResponse(rStats[i].bodyStat.msg, rStats[i].bodyStat.size);
+				RemoveConnection(i);
+			} else {
+				std::cout << rStats[i].bodyStat.msg << std::endl;
+			}
 			break;
 		case BLOCKED:
 			// Just continue on
@@ -168,7 +171,7 @@ void Client::SendMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// Reset sStat
-			sockMsgr->InitSendStat(&sStats[i]);
+			sockMsgr->RefreshSendStat(&sStats[i]);
 			break;
 		case BLOCKED:
 			// Just continue on
@@ -185,9 +188,9 @@ void Client::SendMessage(int i) {
  */
 void Client::RemoveConnection(int i) {
 	close(peers[i].fd);	
-	delete rStats[i].sizeStat.msg;
-	delete rStats[i].bodyStat.msg;
-	delete sStats[i].msg;
+	delete[] rStats[i].sizeStat.msg;
+	delete[] rStats[i].bodyStat.msg;
+	delete[] sStats[i].msg;
 
 	if (i < nConns) {	
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
@@ -200,4 +203,20 @@ void Client::RemoveConnection(int i) {
 
 void Client::SetLog(Log* log) {
     this->log = new Log(log);
+}
+
+
+void Client::HandleResponse(BYTE* body, int len) {
+	char* msg = sockMsgr->ByteToChar(body, len);
+
+	if (strcmp(msg, OK_MSG) == 0) {
+		std::cout << "Succesfully registered user." << std::endl;
+	} else {
+		std::cout <<"User already registered." << std::endl;
+	}
+}
+
+
+bool Client::IsUiOrFileConn(int i) {
+	return false;
 }
