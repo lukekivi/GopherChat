@@ -35,6 +35,8 @@ class Server {
     void SendGreeting(int i);
     void SetNonBlockIO(int fd);
     void RemoveConnection(int i);
+    void HandleReceivedCommand(int i, CommandData* command);
+    void SendOk(int i);
     
     Log* log;
     SocketMessenger* sockMsgr;

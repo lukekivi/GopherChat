@@ -91,7 +91,6 @@ void Server::StartServer(int port) {
 		
 		for (int i=1; i<=nConns; i++) {
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {
-				std::cout << "Socket is readable" << std::endl;
 				RecvMessage(i);
 			}
 			
@@ -118,12 +117,9 @@ void Server::RecvMessage(int i) {
 			// successfully read from socket
 			std::cout << "RecvMessage: OK" << std::endl;
 			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg);
-			std::cout << commandData->getNumArgs() << std::endl;
-			std::cout << commandData->getArgs()[0] << std::endl;
-			std::cout << commandData->getArgs()[1] << std::endl;
 			sockMsgr->InitRecvStat(&rStat[i]);
+			HandleReceivedCommand(i, command);
 			delete commandData;
-
 			break;
 		case BLOCKED:
 			std::cout << "RecvMessage: BLOCKED" << std::endl;
@@ -164,7 +160,7 @@ void Server::SendMessage(int i) {
  */
 void Server::SendGreeting(int i) {
 	// prepare message
-	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(GREETING));
+	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(GREETING), strlen(GREETING));
 
     if (sStat[i].size != 0) {
 		SendMessage(i);
@@ -201,4 +197,62 @@ void Server::RemoveConnection(int i) {
 		memmove(sStat + i, sStat + i + 1, (nConns-i) * sizeof(struct SendStat));
 	}
 	nConns--;
+}
+
+
+void Server::HandleReceivedCommand(CommandData* command) {
+	std::cout << commandData->getCommand() << std::endl;
+	for (int i = 0; i < commandData->getNumArgs(); i++) {
+		std::cout << commandData->getArgs()[i] << std::endl;
+	}
+
+	switch (commandData->getCommand()) {
+		case REGISTER:
+			SendOk(i);
+			break;
+		case LOGIN:
+			numArgs = 2;
+			break;
+		case LOGOUT:
+			break;
+		case SEND:
+			numArgs = 1;
+			break;
+		case SEND_TO:
+			numArgs = 2;
+			break;
+		case SEND_ANON:
+			numArgs = 1;
+			break;
+		case SEND_TO_ANON:
+			numArgs = 2;
+			break;
+		case SEND_FILE:
+			numArgs = 1;
+			break;
+		case SEND_FILE_TO:
+			numArgs = 2;
+			break;
+		case LIST:
+			break;
+		case DELAY:
+			numArgs = 1;
+			break;
+		default:
+			log->Error("Invalid COMMAND.");
+			exit(EXIT_FAILURE);
+	}
+}
+
+
+void Server::SendOk(int i) {
+	const char* ok = "OK";
+	// prepare message
+	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(ok), strlen(ok));
+
+    if (sStat[i].size != 0) {
+		SendMessage(i);
+	}
+	
+	log->Info("Sent a OK!");
 }

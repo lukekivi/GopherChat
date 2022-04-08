@@ -105,19 +105,17 @@ NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer
  * @param sStat container
  * @param msg to be sent
  */
-void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body) {
-	int bodySize = strlen((char*) body);
-
+void SocketMessenger::BuildSendMsg(struct SendStat* sStat, const BYTE* body, int len) {
 	// msg size as a byte array for sending across socket
-	BYTE* arr = IntToByte(bodySize);
+	BYTE* arr = IntToByte(len);
 
 	delete sStat->msg;
-	sStat->msg = new BYTE[bodySize + INT_BYTES];
-	sStat->size = bodySize + INT_BYTES;
+	sStat->msg = new BYTE[len + INT_BYTES];
+	sStat->size = len + INT_BYTES;
 	sStat->nSent = 0;
 
 	// prepend size onto body and add it to sStat.msg
-	std::copy(body, body + bodySize, std::copy(arr, arr + INT_BYTES, sStat->msg));
+	std::copy(body, body + len, std::copy(arr, arr + INT_BYTES, sStat->msg));
 
 	delete arr;
 }
@@ -248,7 +246,7 @@ void SocketMessenger::SetLog(Log* log) {
 }
 
 
-BYTE* SocketMessenger::CommandDataToByte(CommandData* command) {
+BYTE* SocketMessenger::CommandDataToByte(CommandData* command, int* len) {
 	int numArgs = command->getNumArgs();
 	char* username = command->getUsername();
 
@@ -262,13 +260,13 @@ BYTE* SocketMessenger::CommandDataToByte(CommandData* command) {
 	 * - integer preceding each arg to represent arg length
 	 * - length of each arg
 	 */
-	int totalLen = (numArgs + 1) * INT_BYTES + MAX_USRNAME_SIZE;
+	*len = (numArgs + 1) * INT_BYTES + MAX_USRNAME_SIZE;
 	for (int i = 0; i < numArgs; i++) {
 		lens[i] = strlen(args[i]);
-		totalLen += lens[i];
+		*len += lens[i];
 	}
 
-	BYTE* body = new BYTE[totalLen];
+	BYTE* body = new BYTE[*len];
 	BYTE* cmd = IntToByte(command->getCommand());
 	
 	int i = 0;

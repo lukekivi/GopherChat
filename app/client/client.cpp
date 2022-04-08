@@ -40,8 +40,9 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			std::cout << activeCmds[i]->getCommand() << std::endl;
 			std::cout << activeCmds[i]->getArgs()[0] << std::endl;
 
-			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i]);
-			sockMsgr->BuildSendMsg(&sStats[i], body);
+			int len;
+			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i], &len);
+			sockMsgr->BuildSendMsg(&sStats[i], body, len);
 			SendMessage(i);
 		}
 
