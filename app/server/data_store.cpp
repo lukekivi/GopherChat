@@ -2,21 +2,11 @@
 #include <iostream> 
 
 Status DataStore::Register(const char* username, const char* password) {
-    // std::cout << "DataStore.Register()\n\t-user: " <<  username << std::endl;
-    // std::cout << "\t-pwd: " << password << std::endl;
-
-    // std::cout << "Current keys: " << std::endl;
-    // for (auto const& element : m) {
-    //     std::cout << "\t-\"" << element.first << "\"" << std::endl;
-    // }
-
     std::string usr(username);
 
     if (m.find(usr) != m.end()) {
-        std::cout << "DataStore.Register() username existed." << std::endl;
         return FAILURE;
     } else {
-        std::cout << "DataStore.Register() username didn't exist." << std::endl;
         m[usr] = new UserEntry(password);
         return OK;
     }
