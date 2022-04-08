@@ -182,9 +182,9 @@ void Server::RemoveConnection(int i) {
 
 
 void Server::HandleReceivedCommand(int i, CommandData* commandData) {
-	std::cout << commandData->getCommand() << std::endl;
+	std::cout << "Handle RCV: " << commandData->getCommand() << std::endl;
 	for (int i = 0; i < commandData->getNumArgs(); i++) {
-		std::cout << commandData->getArgs()[i] << std::endl;
+		std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
 	}
 
 	switch (commandData->getCommand()) {

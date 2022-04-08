@@ -1,1 +1,3 @@
 REGISTER mario foobar00
+REGISTER mario dingle
+REGISTER lucas 123
