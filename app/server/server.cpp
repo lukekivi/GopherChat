@@ -118,7 +118,7 @@ void Server::RecvMessage(int i) {
 			std::cout << "RecvMessage: OK" << std::endl;
 			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg);
 			sockMsgr->InitRecvStat(&rStat[i]);
-			HandleReceivedCommand(i, command);
+			HandleReceivedCommand(i, commandData);
 			delete commandData;
 			break;
 		case BLOCKED:
@@ -200,7 +200,7 @@ void Server::RemoveConnection(int i) {
 }
 
 
-void Server::HandleReceivedCommand(CommandData* command) {
+void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 	std::cout << commandData->getCommand() << std::endl;
 	for (int i = 0; i < commandData->getNumArgs(); i++) {
 		std::cout << commandData->getArgs()[i] << std::endl;
@@ -211,32 +211,24 @@ void Server::HandleReceivedCommand(CommandData* command) {
 			SendOk(i);
 			break;
 		case LOGIN:
-			numArgs = 2;
 			break;
 		case LOGOUT:
 			break;
 		case SEND:
-			numArgs = 1;
 			break;
 		case SEND_TO:
-			numArgs = 2;
 			break;
 		case SEND_ANON:
-			numArgs = 1;
 			break;
 		case SEND_TO_ANON:
-			numArgs = 2;
 			break;
 		case SEND_FILE:
-			numArgs = 1;
 			break;
 		case SEND_FILE_TO:
-			numArgs = 2;
 			break;
 		case LIST:
 			break;
 		case DELAY:
-			numArgs = 1;
 			break;
 		default:
 			log->Error("Invalid COMMAND.");
