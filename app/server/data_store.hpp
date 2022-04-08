@@ -4,7 +4,7 @@
 #include "../utils/utils.hpp"
 #include "../data/user_enty.hpp"
 #include <unordered_map>
-
+#include <string>
 
 class DataStore {
   public:
@@ -14,7 +14,7 @@ class DataStore {
     bool IsLoggedIn(const char* username);
 
   private:
-    std::unordered_map<const char*, UserEntry> m;
+    std::unordered_map<std::string, UserEntry> m;
 
 };
 
