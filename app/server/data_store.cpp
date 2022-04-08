@@ -1,9 +1,13 @@
 #include "data_store.hpp"
 
 Status DataStore::Register(const char* username, const char* password) {
+    std::cout << "DataStore.Register()\n\t-user: " <<  username << std::endl;
+    std::cout << "\t-pwd: " << password << std::endl;
     if (m.find(username) != m.end()) {
+        std::cout << "DataStore.Register() username existed." << std::endl;
         return FAILURE;
     } else {
+        std::cout << "DataStore.Register() username didn't exist." << std::endl;
         m[username] = new UserEntry(password);
         return OK;
     }

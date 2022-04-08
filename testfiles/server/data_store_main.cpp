@@ -10,7 +10,8 @@ int main () {
      * Register one user
      */
     std::string u1 = "Lucas";
-    std::string p1 = "123";
+    std::string p1 = "1234";
+    std::string p11 = "12345";
     if (ds.Register(u1.c_str(), p1.c_str()) != OK) {
         std::cout << "Failed to register e1" << std::endl;
         numFails++;
@@ -18,6 +19,11 @@ int main () {
 
     if (ds.Register(u1.c_str(), p1.c_str()) != FAILURE) {
         std::cout << "Double registered e1" << std::endl;
+        numFails++;
+    }
+
+    if (ds.Register(u1.c_str(), p11.c_str()) != FAILURE) {
+        std::cout << "Double registered e1 with diff password" << std::endl;
         numFails++;
     }
 
