@@ -27,8 +27,7 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	serverAddr.sin_port = htons((unsigned short) port);
 	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
 
-	// initialize UI thread peers[0]
-	BuildConn(serverAddr);
+	std::cout << "Welcome to GopherChat!" << std:: endl;
 
 	while (1) {	
 
@@ -37,8 +36,8 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			activeCmds[i] = commands.at(commandIndex);
 			commandIndex++;
 
-			std::cout << activeCmds[i]->getCommand() << std::endl;
-			std::cout << activeCmds[i]->getArgs()[0] << std::endl;
+			std::cout << "Send command: " << activeCmds[i]->getCommand() << std::endl;
+			std::cout << "\t-" << activeCmds[i]->getArgs()[0] << std::endl;
 
 			int len;
 			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i], &len);
@@ -46,15 +45,15 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			SendMessage(i);
 		}
 
-		int r = poll(peers, nConns + RES_CONNS, -1);	
+		int r = poll(peers, nConns, -1);	
 		if (r < 0) {
 			log->Error("Invalid poll() return value.");
 		}			
 
 		// Read in UI
-		CheckUi();
+		// CheckUi();
 
-		for (int i = RES_CONNS; i < nConns; i++) {
+		for (int i = 0; i < nConns; i++) {
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
 				RecvMessage(i);
 			}

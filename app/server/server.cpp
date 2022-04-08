@@ -1,8 +1,6 @@
 #include "server.hpp"
 #include <algorithm>
 
-const char* GREETING = "Welcome to GopherChat!";
-
 Server::Server(Log* log) { 
 	this->log = new Log(log);
 	this->sockMsgr = new SocketMessenger(log);
@@ -84,8 +82,6 @@ void Server::StartServer(int port) {
 				memset(&sStat[nConns], 0, sizeof(struct SendStat));
 				memset(&rStat[nConns], 0, sizeof(struct RecvStat));
 				sockMsgr->InitRecvStat(&rStat[nConns]);
-
-				// SendGreeting(nConns);
 			}
 		}
 		
@@ -152,21 +148,6 @@ void Server::SendMessage(int i) {
 			RemoveConnection(i);
 			break;
 	}
-}
-
-
-/**
- * Send a welcome message to new clients.
- */
-void Server::SendGreeting(int i) {
-	// prepare message
-	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(GREETING), strlen(GREETING));
-
-    if (sStat[i].size != 0) {
-		SendMessage(i);
-	}
-	
-	log->Info("Sent a greeting!");
 }
 
 

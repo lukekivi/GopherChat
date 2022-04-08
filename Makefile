@@ -60,12 +60,16 @@ socket_messenger.o: app/utils/socket/socket_messenger.cpp build
 script_reader.o: app/utils/userInput/script_reader.cpp build
 	g++ -c app/utils/userInput/script_reader.cpp -o build/objects/utils/userInput/script_reader.o
 
+data_store.o: app/server/data_store.cpp build
+	g++ -c app/server/data_store.cpp -o build/objects/server/data_store.o
+
 clean:
 	rm -rf build tests log
 
 # TESTS
 tests:
 	mkdir -p tests
+	mkdir -p tests/server
 	mkdir -p tests/utils
 	mkdir -p tests/utils/socket
 	mkdir -p tests/utils/userInput
@@ -73,6 +77,7 @@ tests:
 	mkdir -p tests/objects/utils
 	mkdir -p tests/objects/utils/socket
 	mkdir -p tests/objects/utils/userInput
+	mkdir -p tests/objects/server
 	
 run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests
 
@@ -117,3 +122,14 @@ command_conversion_tests: command_conversion_main.o script_reader.o log.o socket
 
 command_conversion_main.o: testfiles/utils/userInput/command_conversion_main.cpp tests
 	g++ -c testfiles/utils/userInput/command_conversion_main.cpp -o tests/objects/utils/userInput/command_conversion_main.o
+
+
+## DATA STORE TESTS
+run_data_store_tests: data_store_tests tests
+	./tests/server/data_store_tests
+
+data_store_tests: data_store_main.o data_store.o tests
+	g++ tests/objects/server/data_store_main.o build/objects/server/data_store.o -o tests/server/data_store_tests
+
+data_store_main.o: testfiles/server/data_store_main.cpp tests
+	g++ -c testfiles/server/data_store_main.cpp -o tests/objects/server/data_store_main.o

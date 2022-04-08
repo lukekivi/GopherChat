@@ -32,7 +32,6 @@ class Server {
   private:
     void RecvMessage(int i);
     void SendMessage(int i);
-    void SendGreeting(int i);
     void SetNonBlockIO(int fd);
     void RemoveConnection(int i);
     void HandleReceivedCommand(int i, CommandData* command);
