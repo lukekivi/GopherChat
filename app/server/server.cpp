@@ -277,6 +277,11 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 			message = new char[strlen(msg) + 1];
 			strcpy(message, msg);
 			break;
+		case LOGGED_OUT:
+			msg = "Incorrect password.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);

@@ -21,9 +21,13 @@ Status DataStore::Register(const char* username, const char* password) {
 Status DataStore::Login(const char* username, const char* password) {
     std::string usr(username);
 
-    if (!IsInMap(usr) || !m[usr].ComparePassword(password)) {
+    if (!IsInMap(usr)) {
         return FAILURE;
     } 
+
+    if (!m[usr].ComparePassword(password)) {
+        return LOGGED_OUT;
+    }
 
     if (IsLoggedIn(username)) {
         return OK;
