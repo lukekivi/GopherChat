@@ -2,6 +2,7 @@
 #define COMMANDS_DATA_H
 
 #include "../utils/utils.hpp"
+#include <iostream>
 
 /**
  * Data class to hold raw data about commands read in.
@@ -12,6 +13,14 @@ class CommandData {
         command = command_;
         args = args_;    
         numArgs = numArgs_;
+    }
+
+    CommandData(const CommandData& commandData) {
+        command = commandData.command;
+        args = commandData.args;
+        numArgs = commandData.numArgs;
+        username = commandData.username;
+        std::cout << "CALLED COPY CONSTRUCTOR" << std::endl;
     }
 
     ~CommandData() {

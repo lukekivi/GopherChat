@@ -13,12 +13,13 @@ Client::Client(Log* log) {
 }
 
 Client::~Client() {
-	delete log;
-	delete sockMsgr;
+	ExitGracefully();
 }
 
-void Client::StartClient(const char* serverIp, int port, std::vector<CommandData*> commands) {
+void Client::StartClient(const char* serverIp, int port, std::vector<CommandData*> commands_) {
+	commands = commands_;
 	log->Info("There are %d commands to execute.", commands.size());
+
 	int commandIndex = 0;
 
 	struct sockaddr_in serverAddr;
@@ -72,7 +73,7 @@ void Client::CheckUi() {
 				// Just continue on
 				break;
 			case ERROR:
-				exit(EXIT_FAILURE);
+			ExitGracefully();
 		}
 	}
 }
@@ -82,7 +83,7 @@ void Client::SetNonBlockIO(int fd) {
 	int val = fcntl(fd, F_GETFL, 0);
 	if (fcntl(fd, F_SETFL, val | O_NONBLOCK) != 0) {
 		log->Error("Cannot set nonblocking I/O.");
-		exit(EXIT_FAILURE);
+		ExitGracefully();
 	}
 }
 
@@ -90,7 +91,7 @@ void Client::SetNonBlockIO(int fd) {
 int Client::BuildConn(struct sockaddr_in serverAddr) {
 	if (nConns > MAX_CONNS) {
 		log->Error("Too many conns.");
-		exit(EXIT_FAILURE);
+		ExitGracefully();
 	}
 
 	memset(&rStats[nConns], 0, sizeof(RecvStat));
@@ -113,7 +114,7 @@ int Client::BuildConn(struct sockaddr_in serverAddr) {
 	//Connect to server
 	if (connect(peers[nConns].fd, (const struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
 		log->Error("Cannot connect to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
-		exit(EXIT_FAILURE);
+		ExitGracefully();
 	}
 
 	SetNonBlockIO(peers[nConns].fd);
@@ -220,7 +221,7 @@ void Client::HandleResponse(BYTE* body, int len) {
 			break;
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
-			exit(EXIT_FAILURE);
+			ExitGracefully();
 	}
 	PrintResponse(responseData);
 	delete responseData;
@@ -266,8 +267,10 @@ void Client::StartCommand(CommandData* commandData, struct sockaddr_in serverAdd
 				std::cout << "You cannot logout if you are not yet logged in!" << std::endl;
 				return;
 			}
+			commandData->setUsername(loggedInUser);
 			break;
 		case DELAY:
+		case REGISTER:
 			break;
 		default:
 			if (loggedInUser == NULL) {
@@ -282,4 +285,16 @@ void Client::StartCommand(CommandData* commandData, struct sockaddr_in serverAdd
 	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
 	sockMsgr->BuildSendMsg(&sStats[i], body, len);
 	SendMessage(i);
+}
+
+
+void Client::ExitGracefully() {
+	for (int i = 0; i < commands.size(); i++) {
+		delete commands.at(i);
+	}
+	commands.clear();
+	delete log;
+	delete sockMsgr;
+	delete loggedInUser;
+	exit(EXIT_SUCCESS);
 }

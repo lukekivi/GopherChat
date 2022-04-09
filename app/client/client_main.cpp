@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
     char* scriptFileName = argv[3];
 
     ScriptReader reader(scriptFileName, log);
-
     Client client(log);
 
     client.StartClient(serverIp, port, reader.getCommands());

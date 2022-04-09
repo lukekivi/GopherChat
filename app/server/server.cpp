@@ -186,10 +186,10 @@ void Server::RemoveConnection(int i) {
 
 
 void Server::HandleReceivedCommand(int i, CommandData* commandData) {
-	std::cout << "Handle RCV: " << commandData->getCommand() << std::endl;
-	for (int i = 0; i < commandData->getNumArgs(); i++) {
-		std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
-	}
+	// std::cout << "Handle RCV: " << commandData->getCommand() << std::endl;
+	// for (int i = 0; i < commandData->getNumArgs(); i++) {
+	// 	std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
+	// }
 
 	switch (commandData->getCommand()) {
 		case REGISTER:
@@ -288,7 +288,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 
 
 void Server::HandleLogout(int i, CommandData* commandData) {
-	const char* username = commandData->getArgs()[0];
+	const char* username = commandData->getUsername();
 
 	Status status = ds.Logout(username);
 	char* message;

@@ -6,7 +6,7 @@
 #   * make run_all_tests      # 
 ###############################
 
-port_num = 9010
+port_num = 9011
 server_ip = 54.163.12.33
 command_file = "commands.txt"
 
@@ -29,7 +29,7 @@ run_server: server_main
 	./build/server/server_main $(port_num)
 
 run_client: client_main
-	./build/client/client_main $(server_ip) $(port_num) $(command_file)
+	valgrind ./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
 server_main: server_main.o server.o socket_messenger.o data_store.o log.o log

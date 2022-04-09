@@ -5,4 +5,3 @@ REGISTER mario foobar00
 LOGIN lucas 12000
 LOGIN lucas 1234
 LOGOUT lucas
-

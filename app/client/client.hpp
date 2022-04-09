@@ -17,7 +17,7 @@ class Client {
         Client(Log* log);
         ~Client();
 
-        void StartClient(const char* serverIp, int port, std::vector<CommandData*> commands);
+        void StartClient(const char* serverIp, int port, std::vector<CommandData*> commands_);
 
     private:
         void CheckUi();
@@ -33,6 +33,10 @@ class Client {
         void PrintToUi(int i);
         void PrintResponse(ResponseData* responseData);
         void StartCommand(CommandData* command, struct sockaddr_in serverAddr);
+
+        void ExitGracefully();
+
+        std::vector<CommandData*> commands;
 
         int nConns = 0;
         pollfd peers[MAX_CONNS];
