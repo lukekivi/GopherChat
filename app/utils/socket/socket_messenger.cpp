@@ -436,8 +436,8 @@ char* SocketMessenger::ByteToChar(BYTE* body, int len) {
 
 
 BYTE* SocketMessenger::ResponseDataToByte(ResponseData* response, int* len) {
-	char* username = response->getUsername();
-	char* msg = response->getMsg();
+	const char* username = response->getUsername();
+	const char* msg = response->getMsg();
 	int msgLen = strlen(msg);
 
 	/**
