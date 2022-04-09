@@ -4,6 +4,7 @@
 #include "../utils.hpp"
 #include "../log.hpp"
 #include "../../data/command_data.hpp"
+#include "../../data/response_data.hpp"
 
 class SocketMessenger {
   public:
@@ -25,6 +26,9 @@ class SocketMessenger {
     BYTE* CommandDataToByte(CommandData* command, int* len);
     CommandData* ByteToCommandData(BYTE* body);
 
+    BYTE* ResponseDataToByte(ResponseData* response, int* len);
+    ResponseData* ByteToResponseData(BYTE* body);
+
     char* ByteToChar(BYTE* body, int len);
     
   private:
@@ -35,6 +39,10 @@ class SocketMessenger {
     Command ReadCommand(BYTE* body);
     char* ReadUsername(BYTE* body);
     char** ReadArgs(BYTE* body, int numArgs);
+
+    // helper for ByteToResponseData
+    Status ReadStatus(BYTE* body);
+    char* ReadMsg(BYTE* body);
 
     void SetLog(Log* log);
     Log* log;

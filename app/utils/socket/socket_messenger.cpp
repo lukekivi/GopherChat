@@ -292,10 +292,10 @@ BYTE* SocketMessenger::CommandDataToByte(CommandData* command, int* len) {
 	}
 
 	for (int j = 0; j < numArgs; j++) {
-		BYTE* len = IntToByte(lens[j]);
+		BYTE* argLen = IntToByte(lens[j]);
 		BYTE* arg = CharToByte(args[j]);
 		for (int k = 0; k < INT_BYTES; k++) {
-			body[i] = len[k];
+			body[i] = argLen[k];
 			i++;
 		}
 
@@ -351,6 +351,7 @@ CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
 	}
 
 	commandData = new CommandData(command, ReadArgs(body, numArgs), numArgs);
+	commandData->setUsername(username);
 
 	return commandData;
 }
@@ -430,5 +431,94 @@ char* SocketMessenger::ByteToChar(BYTE* body, int len) {
 		msg[i] = body[i];
 	}
 	msg[len] = '\0';
+	return msg;
+}
+
+
+BYTE* SocketMessenger::ResponseDataToByte(ResponseData* response, int* len) {
+	char* username = response->getUsername();
+	char* msg = response->getMsg();
+	int msgLen = strlen(msg);
+
+	/**
+	 * total length includes
+	 * - integer representation of status enum
+	 * - username field of length 8
+	 * - integer preceding msg to represent msg length
+	 * - length of each msg
+	 */
+	*len = 2 * INT_BYTES + MAX_USRNAME_SIZE + msgLen;
+
+	BYTE* body = new BYTE[*len];
+	BYTE* status = IntToByte(response->GetStatus());
+	
+	int i = 0;
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = status[j];
+		i++;
+	}
+
+	for (int j = 0; j < MAX_USRNAME_SIZE; j++) {
+		if (username == NULL || j > strlen(username) - 1) {
+			body[i] = '-';
+		} else {
+			body[i] = username[j];
+		}
+		i++;
+	}
+
+	BYTE* argLen = IntToByte(msgLen);
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = argLen[j];
+		i++;
+	}
+
+	// convert the msg
+	BYTE* arg = CharToByte(msg);
+	for (int j = 0; j < msgLen; j++) {
+		body[i] = arg[j];
+		i++;
+	}
+
+	return body;
+}
+
+
+ResponseData* SocketMessenger::ByteToResponseData(BYTE* body) {
+	Status status = ReadStatus(body);
+	char* username = ReadUsername(body);
+	return new ResponseData(status, ReadMsg(body), username);
+}
+
+
+Status SocketMessenger::ReadStatus(BYTE* body) {
+	BYTE cmd[4];
+
+	int i = 0;
+	for (int j = 0; j < 4; j++) {
+		cmd[j] = body[i];
+		i++;
+	}
+
+	return static_cast<Status>(ByteToInt(cmd));
+}
+
+
+char* SocketMessenger::ReadMsg(BYTE* body) {
+	int offset = INT_BYTES + MAX_USRNAME_SIZE;
+
+	BYTE* num = body + offset;
+	int size = ByteToInt(num);
+
+	char* msg = new char[size+1];
+	msg[size] = '\0';
+
+	offset += INT_BYTES;
+
+	for (int i = 0; i < size; i++) {
+		msg[i] = (char) body[offset];
+		offset++;
+	}
+	
 	return msg;
 }

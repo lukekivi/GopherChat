@@ -93,9 +93,6 @@ void Server::StartServer(int port) {
 			// a previously blocked data socket becomes writable
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);
-				if (!IsUiOrFileConn(i)) {
-					RemoveConnection(i);
-				}
 			}
 		}
 	}	
@@ -142,7 +139,11 @@ void Server::SendMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// Reset sStat
-			sockMsgr->RefreshSendStat(&sStat[i]);
+			if (!IsUiOrFileConn(i)) {
+				RemoveConnection(i);
+			} else {
+				sockMsgr->RefreshSendStat(&sStat[i]);
+			}
 			break;
 		case BLOCKED:
 			// Just continue on
@@ -223,40 +224,46 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 
 void Server::HandleRegister(int i, CommandData* commandData) {
 	std::cout << "Registering " << commandData->getArgs()[0] << std::endl;
-	if (commandData->getNumArgs() != 2) {
-		log->Error("Registration requires 2 args: a username and a password.");
-		exit(EXIT_FAILURE);
-	}
 
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
-	if (ds.Register(username, password) == OK) {
-		SendOk(i);
-	} else {
-		SendFailure(i);
-	}
+
+	Status status = ds.Register(username, password);
+	char* message;
+
+	switch(status) {
+		case OK:
+			const char* msg = "Registration succeeded."
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		case FAILURE:
+			const char* msg = "Registration failed."
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			SendFailure(i, username);
+			break;
+		default:
+			log->Error("Invalid STATUS.");
+			exit(EXIT_FAILURE);
+			break;
+	}	
+
+	SendResponse(int i, new Response(status, message, username));
 }
 
 
-void Server::SendOk(int i) {
+void Server::SendResponse(int i, ResponseData* responseData) {
 	// prepare message
+	int len;
+	BYTE* body = sockMsgr->ResponseDataToByte(responseData, &len);
 	sockMsgr->InitSendStat(&sStat[i]);
-	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(OK_MSG), strlen(OK_MSG));
+	sockMsgr->BuildSendMsg(&sStat[i], body, len);
 
 	SendMessage(i);
-	
-	log->Info("Sent an OK!");
-}
 
-
-void Server::SendFailure(int i) {
-	// prepare message
-	sockMsgr->InitSendStat(&sStat[i]);
-	sockMsgr->BuildSendMsg(&sStat[i], sockMsgr->CharToByte(FAILURE_MSG), strlen(FAILURE_MSG));
-
-	SendMessage(i);
-	
-	log->Info("Sent a FAILURE!");
+	log->Info("Sent an %d!", responseData->GetStatus());
+	delete responseData;
 }
 
 

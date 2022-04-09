@@ -23,6 +23,7 @@ int main() {
 }
 
 int TestScriptRead() {
+    int len;
     int numFailed = 0;
 
     Log log(LOG_PATH);
@@ -32,7 +33,7 @@ int TestScriptRead() {
     std::vector<CommandData*> commands = scriptReader.getCommands();
 
     /** REGISTER **/
-    CommandData* commandDataOne = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(0)));
+    CommandData* commandDataOne = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(0), &len));
     Command commandOne = commandDataOne->getCommand();
     Command expectedCommandOne = REGISTER;
     if (commandOne != expectedCommandOne) {
@@ -60,7 +61,7 @@ int TestScriptRead() {
     }
 
     /** LOGIN AND NULL USER **/
-    CommandData* commandDataTwo = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(1)));
+    CommandData* commandDataTwo = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(1), &len));
     Command commandTwo = commandDataTwo->getCommand();
     Command expectedCommandTwo = LOGIN;
     if (commandTwo != expectedCommandTwo) {
@@ -93,8 +94,8 @@ int TestScriptRead() {
     }
 
     /** LOGOUT WITH USER **/
-    CommandData* commandDataThree = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(2)));
-    commandDataThree->setUsername("kivix");
+    commands.at(2)->setUsername("kivix");
+    CommandData* commandDataThree = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(2), &len));
     Command commandThree = commandDataThree->getCommand();
     Command expectedCommandThree = LOGOUT;
     if (commandThree != expectedCommandThree) {

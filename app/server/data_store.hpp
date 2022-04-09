@@ -3,7 +3,7 @@
 
 #include "../utils/utils.hpp"
 #include "profile.hpp"
-#include "../data/user_enty.hpp"
+#include "../data/user_entry.hpp"
 #include <unordered_map>
 #include <string>
 #include <vector>

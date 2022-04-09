@@ -54,12 +54,12 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 		// CheckUi();
 
 		for (int i = 0; i < nConns; i++) {
-			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
-				RecvMessage(i);
-				continue;
-			}
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);
+			}
+
+			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
+				RecvMessage(i);
 			}
 		}
 	}
@@ -149,7 +149,8 @@ void Client::RecvMessage(int i) {
 				HandleResponse(rStats[i].bodyStat.msg, rStats[i].bodyStat.size);
 				RemoveConnection(i);
 			} else {
-				std::cout << rStats[i].bodyStat.msg << std::endl;
+				PrintToUI(i);
+				sockMsgr->InitRecvStat(&rStats[i]);
 			}
 			break;
 		case BLOCKED:
@@ -208,16 +209,48 @@ void Client::SetLog(Log* log) {
 
 
 void Client::HandleResponse(BYTE* body, int len) {
-	char* msg = sockMsgr->ByteToChar(body, len);
+	ResponseData* responseData = sockMsgr->ByteToResponseData(body);
+	Status status = responseData.GetStatus();
 
-	if (strcmp(msg, OK_MSG) == 0) {
-		std::cout << "Succesfully registered user." << std::endl;
-	} else {
-		std::cout <<"User already registered." << std::endl;
+	switch(status) {
+		case OK:
+			break;
+		case FAILURE:
+			break;
+		case LOGGED_IN:
+			break;
+		case LOGGED_OUT:
+			break;
+		default:
+			log->Error("HandleResponse: hit nonexisteant Status.");
+			exit(EXIT_FAILURE);
 	}
+	PrintResponse(responseData);
+	delete responseData;
 }
 
 
 bool Client::IsUiOrFileConn(int i) {
 	return false;
+}
+
+
+void Client::PrintToUi(int i) {
+	int size = rStats[i].bodyStat.size;
+	char body[size + 1];
+	body[size] = '\0';
+
+	for (int i = 0; i < size; i++) {
+		body = rStats[i].bodyStat.msg;
+	}
+
+	std::cout << body << std::endl;
+}
+
+
+void Client::PrintResponse(ResponseData* responseData) {
+	char* msg = responseData.getMessage();
+	char* username = responseData.getUsername();
+
+	std::cout << username << ": " << msg << std::endl;
 }

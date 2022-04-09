@@ -19,6 +19,7 @@
 #include "../data/command_data.hpp"
 #include "data_store.hpp"
 #include "../utils/utils.hpp"
+#include "../data/response_data.hpp"
 
 #define MAX_REQUEST_SIZE 10000000
 #define MAX_CONCURRENCY_LIMIT 64
@@ -38,8 +39,7 @@ class Server {
     void RemoveConnection(int i);
     void HandleReceivedCommand(int i, CommandData* commandData);
     void HandleRegister(int i, CommandData* commandData);
-    void SendOk(int i);
-    void SendFailure(int i);
+    void SendResponse(int i, ResponseData* responseData);
     
     bool IsUiOrFileConn(int i);
 

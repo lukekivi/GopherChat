@@ -30,6 +30,8 @@ class Client {
         BYTE* CommandToByte(CommandData* command);
         void HandleResponse(BYTE* body, int len);
         bool IsUiOrFileConn(int i);
+        void PrintToUi(int i);
+        void PrintResponse(ResponseData* responseData);
 
         int nConns = 0;
         pollfd peers[MAX_CONNS];

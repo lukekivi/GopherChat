@@ -15,8 +15,11 @@ class CommandData {
     }
 
     ~CommandData() {
+        for (int i = 0; i < numArgs; i++) {
+            delete[] args[i];
+        }
         delete[] args;
-        delete username;
+        delete[] username;
     }
 
     Command getCommand() {

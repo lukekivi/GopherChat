@@ -12,13 +12,6 @@
 #define MAX_INT_SIZE_LENGTH 8
 #define FILE_CONNS 10
 
-
-/**
- * constants for registration, login, and logout messages
- */
-#define FAILURE_MSG "FAILURE"
-#define OK_MSG "OK"
-
 typedef unsigned char BYTE;
 
 /**
@@ -71,18 +64,6 @@ enum NbStatus {
 
 
 /**
- * Status to ACK client messages.
- * - OK: everything went ok
- * - NO_USER: No user signed in
- * - ERROR: an error occurred
- */
-enum Status {
-	OK,
-	NO_USER,
-	FAILURE
-};
-
-/**
  * State to distinguish incoming commands
  */
 enum Command {
@@ -97,6 +78,20 @@ enum Command {
     SEND_FILE_TO    = 8,
     LIST            = 9,
     DELAY           = 10
+};
+
+
+/**
+ * Status to ACK client messages.
+ * - OK: everything went ok
+ * - FAILURE: something went wrong
+ * - LOGGED_IN: Use was logged in
+ */
+enum Status {
+	OK			= 30,
+	FAILURE     = 31,
+	LOGGED_IN   = 32,
+	LOGGED_OUT  = 33
 };
 
 #endif

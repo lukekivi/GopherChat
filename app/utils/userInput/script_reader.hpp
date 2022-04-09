@@ -15,7 +15,8 @@ class ScriptReader {
     ScriptReader(const char* filePath, Log* log) { 
         file.open(filePath); 
         log = new Log(log);
-    };
+    }
+    
     ~ScriptReader() { 
         file.close(); 
         delete log;

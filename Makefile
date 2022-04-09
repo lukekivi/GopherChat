@@ -115,7 +115,7 @@ user_input_main.o: testfiles/utils/userInput/user_input_main.cpp tests
 
 ## SOCKET MESSENGER / SCRIPT READER INTEGRATION TESTS
 run_command_conversion_tests: command_conversion_tests tests
-	./tests/utils/userInput/command_conversion_tests
+	valgrind ./tests/utils/userInput/command_conversion_tests
 
 command_conversion_tests: command_conversion_main.o script_reader.o log.o socket_messenger.o tests
 	g++ tests/objects/utils/userInput/command_conversion_main.o build/objects/utils/userInput/script_reader.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/command_conversion_tests
@@ -133,3 +133,14 @@ data_store_tests: data_store_main.o data_store.o tests
 
 data_store_main.o: testfiles/server/data_store_main.cpp tests
 	g++ -c testfiles/server/data_store_main.cpp -o tests/objects/server/data_store_main.o
+
+
+## Response conversion tests
+run_response_conversion_tests: response_conversion_tests tests
+	valgrind ./tests/utils/userInput/response_conversion_tests
+
+response_conversion_tests: response_conversion_main.o log.o socket_messenger.o tests
+	g++ tests/objects/utils/userInput/response_conversion_main.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/response_conversion_tests
+
+response_conversion_main.o: testfiles/utils/userInput/response_conversion_main.cpp tests
+	g++ -c testfiles/utils/userInput/response_conversion_main.cpp -o tests/objects/utils/userInput/response_conversion_main.o
