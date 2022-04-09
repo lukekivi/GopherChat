@@ -230,18 +230,18 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 
 	Status status = ds.Register(username, password);
 	char* message;
+	const char* msg;
 
 	switch(status) {
 		case OK:
-			const char* msg = "Registration succeeded."
+			msg = "Registration succeeded.";
 			message = new char[strlen(msg) + 1];
 			strcpy(message, msg);
 			break;
 		case FAILURE:
-			const char* msg = "Registration failed."
+			msg = "Registration failed.";
 			message = new char[strlen(msg) + 1];
 			strcpy(message, msg);
-			SendFailure(i, username);
 			break;
 		default:
 			log->Error("Invalid STATUS.");
@@ -249,7 +249,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 			break;
 	}	
 
-	SendResponse(int i, new Response(status, message, username));
+	SendResponse(i, new ResponseData(status, message, username));
 }
 
 

@@ -8,7 +8,7 @@
  */
 class ResponseData {
   public:
-    ResponseData(Status status_, char* msg_, char* username_) {
+    ResponseData(Status status_, const char* msg_, const char* username_) {
         status = status_;
         msg = msg_;    
         username = username_;
@@ -23,18 +23,18 @@ class ResponseData {
         return status;
     }
 
-    char* getMsg() {
+    const char* getMsg() {
         return msg;
     }
 
-    char* getUsername() {
+    const char* getUsername() {
         return username;
     }
 
   private:
     Status status;
-    char* msg;
-    char* username;
+    const char* msg;
+    const char* username;
 };
 
 #endif
