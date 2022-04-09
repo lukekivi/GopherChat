@@ -65,7 +65,7 @@ int DataStore::FindIndexOf(const char* username) {
 bool DataStore::IsInMap(std::string username) {
      for (auto e : m) {
         if (e.first.compare(username) == 0) {
-            return true
+            return true;
         }
     }
     return false;
