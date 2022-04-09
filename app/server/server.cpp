@@ -253,7 +253,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 }
 
 
-void HandleLogin(int i, CommandData* commandData) {
+void Server::HandleLogin(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
 
@@ -287,10 +287,10 @@ void HandleLogin(int i, CommandData* commandData) {
 }
 
 
-void HandleLogout(int i, CommandData* commandData) {
+void Server::HandleLogout(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 
-	Status status = ds.Login(username);
+	Status status = ds.Logout(username);
 	char* message;
 	const char* msg;
 
