@@ -126,7 +126,7 @@ command_conversion_main.o: testfiles/utils/userInput/command_conversion_main.cpp
 
 ## DATA STORE TESTS
 run_data_store_tests: data_store_tests tests
-	./tests/server/data_store_tests
+	valgrind ./tests/server/data_store_tests
 
 data_store_tests: data_store_main.o data_store.o tests
 	g++ tests/objects/server/data_store_main.o build/objects/server/data_store.o -o tests/server/data_store_tests

@@ -56,6 +56,7 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 		for (int i = 0; i < nConns; i++) {
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
 				RecvMessage(i);
+				continue;
 			}
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);

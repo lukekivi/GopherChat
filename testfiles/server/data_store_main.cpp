@@ -60,9 +60,9 @@ int main () {
         numFails++;
     }
 
-    /**
-     * Logout user one
-     */
+    // /**
+    //  * Logout user one
+    //  */
     if (ds.Logout(u1.c_str()) != OK) {
         std::cout << "Failed to logout e1" << std::endl;
         numFails++;

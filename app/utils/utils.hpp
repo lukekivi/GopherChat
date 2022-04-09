@@ -10,6 +10,9 @@
 #define MAX_MSG_SIZE 256
 #define MAX_TOTAL_SIZE 10000100
 #define MAX_INT_SIZE_LENGTH 8
+#define FILE_CONNS 10
+
+
 /**
  * constants for registration, login, and logout messages
  */
