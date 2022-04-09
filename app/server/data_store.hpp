@@ -17,6 +17,7 @@ class DataStore {
 
   private:
     int FindIndexOf(const char* username);
+    bool IsInMap(std::string username);
 
     std::unordered_map<std::string, UserEntry> m;
     std::vector<Profile*> profiles;

@@ -9,7 +9,7 @@ Status DataStore::Register(const char* username, const char* password) {
         std::cout << "\t- " << e.first << std::endl;
     }
 
-    if (m.find(usr) != m.end()) {
+    if (IsInMap(usr)) {
         return FAILURE;
     } else {
         m[usr] = UserEntry(password);
@@ -21,7 +21,7 @@ Status DataStore::Register(const char* username, const char* password) {
 Status DataStore::Login(const char* username, const char* password) {
     std::string usr(username);
 
-    if (m.find(usr) == m.end() || !m[usr].ComparePassword(password)) {
+    if (IsInMap(usr) || !m[usr].ComparePassword(password)) {
         return FAILURE;
     } 
 
@@ -59,4 +59,14 @@ int DataStore::FindIndexOf(const char* username) {
         }
     }
     return -1;
+}
+
+
+bool DataStore::IsInMap(std::string username) {
+     for (auto e : m) {
+        if (e.first.compare(username) == 0) {
+            return true
+        }
+    }
+    return false;
 }
