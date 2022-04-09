@@ -9,7 +9,6 @@
 class Log {
     
     public:
-        Log() {}
         Log(std::string filePath) { SetLogFile(filePath); }
         Log(Log* log) { CopyLogFile(log->filePath); }
         ~Log() {}
