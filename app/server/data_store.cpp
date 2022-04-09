@@ -4,11 +4,6 @@
 Status DataStore::Register(const char* username, const char* password) {
     std::string usr(username);
 
-    std::cout << "DataStore.Register(): comparing " << username << " with:" << std::endl;
-    for (auto e : m) {
-        std::cout << "\t- " << e.first << std::endl;
-    }
-
     if (IsInMap(usr)) {
         return FAILURE;
     } else {

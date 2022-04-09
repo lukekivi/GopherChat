@@ -111,7 +111,6 @@ void Server::RecvMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// successfully read from socket
-			std::cout << "RecvMessage: OK" << std::endl;
 			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg);
 			sockMsgr->InitRecvStat(&rStat[i]);
 			HandleReceivedCommand(i, commandData);
@@ -229,7 +228,8 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			// ds.SetFileConn(commandData.getUsername(), i);
 			break;
 		default:
-			log->Error("Invalid COMMAND.");
+			log->Error("Invalid COMMAND: %d", commandData->getCommand());
+			delete commandData;
 			exit(EXIT_FAILURE);
 	}
 }
