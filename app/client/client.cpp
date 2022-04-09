@@ -36,9 +36,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			activeCmds[i] = commands.at(commandIndex);
 			commandIndex++;
 
-			std::cout << "Send command: " << activeCmds[i]->getCommand() << std::endl;
-			std::cout << "\t-" << activeCmds[i]->getArgs()[0] << std::endl;
-
 			int len;
 			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i], &len);
 			sockMsgr->BuildSendMsg(&sStats[i], body, len);
@@ -149,7 +146,7 @@ void Client::RecvMessage(int i) {
 				HandleResponse(rStats[i].bodyStat.msg, rStats[i].bodyStat.size);
 				RemoveConnection(i);
 			} else {
-				PrintToUI(i);
+				PrintToUi(i);
 				sockMsgr->InitRecvStat(&rStats[i]);
 			}
 			break;
@@ -210,7 +207,7 @@ void Client::SetLog(Log* log) {
 
 void Client::HandleResponse(BYTE* body, int len) {
 	ResponseData* responseData = sockMsgr->ByteToResponseData(body);
-	Status status = responseData.GetStatus();
+	Status status = responseData->GetStatus();
 
 	switch(status) {
 		case OK:
@@ -241,7 +238,7 @@ void Client::PrintToUi(int i) {
 	body[size] = '\0';
 
 	for (int i = 0; i < size; i++) {
-		body = rStats[i].bodyStat.msg;
+		body[i] = (char) rStats[i].bodyStat.msg[i];
 	}
 
 	std::cout << body << std::endl;
@@ -249,8 +246,8 @@ void Client::PrintToUi(int i) {
 
 
 void Client::PrintResponse(ResponseData* responseData) {
-	char* msg = responseData.getMessage();
-	char* username = responseData.getUsername();
+	const char* msg = responseData->getMsg();
+	const char* username = responseData->getUsername();
 
 	std::cout << username << ": " << msg << std::endl;
 }

@@ -4,6 +4,10 @@
 Status DataStore::Register(const char* username, const char* password) {
     std::string usr(username);
 
+    for (auto e : m) {
+        std::cout << e.first() << std::endl;
+    }
+
     if (m.find(usr) != m.end()) {
         return FAILURE;
     } else {
