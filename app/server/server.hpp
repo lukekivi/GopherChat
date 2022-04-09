@@ -44,6 +44,9 @@ class Server {
     void SendResponse(int i, ResponseData* responseData);
     
     bool IsUiOrFileConn(int i);
+    void SendMessageToUi(const char* username, const char* message);
+
+    void ExitGracefully();
 
     Log* log;
     SocketMessenger* sockMsgr;

@@ -74,3 +74,35 @@ bool DataStore::IsInMap(std::string username) {
     }
     return false;
 }
+
+
+int DataStore::SetUiConn(const char* username, int i) {
+    std::cout << "DataStore.SetUiConn(): set connection for " << username << std::endl;
+    int index = FindIndexOf(username);
+    if (index != -1) {
+        profiles.at(index)->SetUiConn(i);
+        return 0;
+    }
+    return -1;
+}
+
+
+int DataStore::GetUiConn(const char* username) {
+    int index = FindIndexOf(username);
+    if (index != -1) {
+        return profiles.at(index)->GetUiConn();
+    }
+    return -1;
+}
+
+
+int DataStore::AttemptLogoutConnLoss(int i) {
+    for (int j = 0; j < profiles.size(); j++) {
+        if (profiles.at(j)->IsInConns(i))  {
+            delete profiles.at(j);
+            profiles.erase(profiles.begin() + j);
+            return 1;
+        }
+    }
+    return 0;
+}

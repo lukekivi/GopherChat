@@ -6,10 +6,6 @@
  * Get list of commands for from file.
  */
 std::vector<CommandData*> ScriptReader::getCommands() {
-    std::cout<< "GOT HERE" << std::endl;
-    log->Info("GELLLDGHSUDG");
-    std::cout<< "GOT HERE" << std::endl;
-
     if (!file.is_open()) {
         log->Error("Failed to open file.");
         exit(EXIT_FAILURE);

@@ -16,6 +16,8 @@ class Profile {
     Profile(const char* username_) {
       username = new char[strlen(username_)+1];
       strcpy(username, username_);
+      uiConn.index = -1;
+      uiConn.isInUse = false;
     }
 
     ~Profile() {
@@ -39,7 +41,7 @@ class Profile {
       messages.push_back(msg);
     }
 
-    void SetUIConn(int i) {
+    void SetUiConn(int i) {
       uiConn.index = i;
       uiConn.isInUse = false;
     }
@@ -73,6 +75,20 @@ class Profile {
           fileConns[j].isInUse = false;
         }
       }
+    }
+
+    bool IsInConns(int i) {
+      if (uiConn.index == i) {
+        return true;
+      }
+
+      for (int j = 0; j < numFileConns; j++) {
+          if (fileConns[j].index == i) {
+            return true;
+          }
+      }
+
+      return false;
     }
 
   private:

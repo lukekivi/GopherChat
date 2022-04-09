@@ -1,11 +1,4 @@
 #include "client.hpp"
-#include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <iostream>
-#include <signal.h>
-#include <fcntl.h>
 
 Client::Client(Log* log) { 
 	SetLog(log); 
@@ -22,7 +15,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 
 	int commandIndex = 0;
 
-	struct sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));	
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons((unsigned short) port);
@@ -33,7 +25,7 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	while (1) {	
 
 		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
-			StartCommand(commands.at(commandIndex), serverAddr);
+			StartCommand(commands.at(commandIndex));
 			commandIndex++;
 		}
 
@@ -88,7 +80,7 @@ void Client::SetNonBlockIO(int fd) {
 }
 
 
-int Client::BuildConn(struct sockaddr_in serverAddr) {
+int Client::BuildConn() {
 	if (nConns > MAX_CONNS) {
 		log->Error("Too many conns.");
 		ExitGracefully();
@@ -192,6 +184,16 @@ void Client::RemoveConnection(int i) {
 		memmove(sStats + i, sStats + i + 1, (nConns-i) * sizeof(struct SendStat));
 	}
 	nConns--;
+
+	if (uiConn == i) {
+		uiConn = -1;
+	} else {
+		for (int j = 0; j < fileConns.size(); j++) {
+			if (fileConns.at(j) == i) {
+				fileConns.erase(fileConns.begin() + j);
+			}
+		}
+	}
 }
 
 
@@ -214,6 +216,7 @@ void Client::HandleResponse(BYTE* body, int len) {
 			username = responseData->getUsername();
 			loggedInUser = new char[strlen(username)+1];
 			strcpy(loggedInUser, username);
+			SetupSession();
 			break;
 		case LOGGED_OUT:
 			delete[] loggedInUser;
@@ -254,7 +257,7 @@ void Client::PrintResponse(ResponseData* responseData) {
 }
 
 
-void Client::StartCommand(CommandData* commandData, struct sockaddr_in serverAddr) {
+void Client::StartCommand(CommandData* commandData) {
 	switch(commandData->getCommand()) {
 		case LOGIN:
 			if (loggedInUser != NULL) {
@@ -279,11 +282,8 @@ void Client::StartCommand(CommandData* commandData, struct sockaddr_in serverAdd
 			}
 	}
 
-	int i = BuildConn(serverAddr);
-
-	int len;
-	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
-	sockMsgr->BuildSendMsg(&sStats[i], body, len);
+	int i = BuildConn();
+	PrepareMessage(commandData, i);
 	SendMessage(i);
 }
 
@@ -297,4 +297,33 @@ void Client::ExitGracefully() {
 	delete sockMsgr;
 	delete loggedInUser;
 	exit(EXIT_SUCCESS);
+}
+
+
+void Client::SetupSession() {
+	// setup UI connection
+	int i = BuildConn();
+	uiConn = i;
+	CommandData* uiCommandData = BuildUiCommand();
+	PrepareMessage(uiCommandData, i);
+
+	delete uiCommandData;  // generalize deletion after BYTE CONVERSION
+
+	SendMessage(i);
+}
+
+
+CommandData* Client::BuildUiCommand() {
+	CommandData* commandData = new CommandData(UI_CONN, NULL, 0);
+	char* username = new char[strlen(loggedInUser)+1];
+	strcpy(username, loggedInUser);
+	commandData->setUsername(username);
+	return commandData;
+}
+
+
+void Client::PrepareMessage(CommandData* commandData, int i) {
+	int len;
+	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
+	sockMsgr->BuildSendMsg(&sStats[i], body, len);
 }

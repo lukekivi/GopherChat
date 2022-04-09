@@ -182,11 +182,15 @@ void Server::RemoveConnection(int i) {
 		memmove(sStat + i, sStat + i + 1, (nConns-i) * sizeof(struct SendStat));
 	}
 	nConns--;
+
+	if (ds.AttemptLogoutConnLoss(i) == 1) {
+		log->Info("Logged out a user because their file or UI connection failed.");
+	}
 }
 
 
 void Server::HandleReceivedCommand(int i, CommandData* commandData) {
-	// std::cout << "Handle RCV: " << commandData->getCommand() << std::endl;
+	std::cout << "Server.HandleReceivedCommand(): " << commandData->getCommand() << std::endl;
 	// for (int i = 0; i < commandData->getNumArgs(); i++) {
 	// 	std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
 	// }
@@ -216,6 +220,13 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 		case LIST:
 			break;
 		case DELAY:
+			break;
+		case UI_CONN:
+			ds.SetUiConn(commandData->getUsername(), i);
+			SendMessageToUi(commandData->getUsername(), "here is a ui message");
+			break;
+		case FILE_CONN:
+			// ds.SetFileConn(commandData.getUsername(), i);
 			break;
 		default:
 			log->Error("Invalid COMMAND.");
@@ -338,4 +349,29 @@ void Server::SendResponse(int i, ResponseData* responseData) {
 bool Server::IsUiOrFileConn(int i) {
 	// check if conn[i] is a UI/File conn
 	return false;
+}
+
+
+void Server::SendMessageToUi(const char* username, const char* message) {
+	int index = ds.GetUiConn(username);
+
+	if (index == -1) {
+		log->Error("Attempt to send message to non-logged in user");
+		ExitGracefully();
+	}
+
+	int len = strlen(message);
+	BYTE* body = sockMsgr->CharToByte(message);
+	sockMsgr->InitSendStat(&sStat[index]);
+	sockMsgr->BuildSendMsg(&sStat[index], body, len);
+
+	SendMessage(index);
+}
+
+
+void Server::ExitGracefully() {
+	delete log;
+	delete sockMsgr;
+
+	exit(EXIT_SUCCESS);
 }

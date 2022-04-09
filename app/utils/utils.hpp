@@ -77,7 +77,9 @@ enum Command {
     SEND_FILE       = 7,
     SEND_FILE_TO    = 8,
     LIST            = 9,
-    DELAY           = 10
+    DELAY           = 10,
+	UI_CONN			= 11,	// reserved for system, not for users
+	FILE_CONN 		= 12	// reserved for system, not for users
 };
 
 
