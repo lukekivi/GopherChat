@@ -41,8 +41,8 @@ int TestConversion() {
 
 
     ResponseData* actualResponse = sockMsgr.ByteToResponseData(body);
-    char* actualUsername = actualResponse->getUsername();
-    char* actualMsg = actualResponse->getMsg();
+    const char* actualUsername = actualResponse->getUsername();
+    const char* actualMsg = actualResponse->getMsg();
     Status actualStatus = actualResponse->GetStatus();
 
     if (strcmp(msg, actualMsg) != 0) {

@@ -79,7 +79,7 @@ tests:
 	mkdir -p tests/objects/utils/userInput
 	mkdir -p tests/objects/server
 	
-run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests
+run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests run_response_conversion_tests run_response_conversion_tests
 
 ## LOG TESTS
 run_log_tests: log_tests 

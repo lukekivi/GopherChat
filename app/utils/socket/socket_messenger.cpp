@@ -315,35 +315,22 @@ CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
 	int numArgs = 0;
 	switch(command) {
 		case REGISTER:
-			numArgs = 2;
-			break;
 		case LOGIN:
-			numArgs = 2;
-			break;
-		case LOGOUT:
-			break;
-		case SEND:
-			numArgs = 1;
-			break;
 		case SEND_TO:
-			numArgs = 2;
-			break;
-		case SEND_ANON:
-			numArgs = 1;
-			break;
 		case SEND_TO_ANON:
-			numArgs = 2;
-			break;
-		case SEND_FILE:
-			numArgs = 1;
-			break;
 		case SEND_FILE_TO:
 			numArgs = 2;
 			break;
-		case LIST:
-			break;
+		case SEND:
+		case SEND_ANON:
+		case SEND_FILE:
 		case DELAY:
 			numArgs = 1;
+			break;
+		case LOGOUT:
+		case LIST:
+		case UI_CONN:
+		case FILE_CONN:
 			break;
 		default:
 			log->Error("Invalid COMMAND.");
