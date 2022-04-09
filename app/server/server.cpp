@@ -196,8 +196,10 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleRegister(i, commandData);
 			break;
 		case LOGIN:
+			HandleLogin(i, commandData);
 			break;
 		case LOGOUT:
+			HandleLogout(i, commandData);
 			break;
 		case SEND:
 			break;
@@ -223,8 +225,6 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 
 
 void Server::HandleRegister(int i, CommandData* commandData) {
-	std::cout << "Registering " << commandData->getArgs()[0] << std::endl;
-
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
 
@@ -240,6 +240,69 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 			break;
 		case FAILURE:
 			msg = "Registration failed.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		default:
+			log->Error("Invalid STATUS.");
+			exit(EXIT_FAILURE);
+			break;
+	}	
+
+	SendResponse(i, new ResponseData(status, message, username));
+}
+
+
+void HandleLogin(int i, CommandData* commandData) {
+	const char* username = commandData->getArgs()[0];
+	const char* password = commandData->getArgs()[1];
+
+	Status status = ds.Login(username, password);
+	char* message;
+	const char* msg;
+
+	switch(status) {
+		case OK:
+			msg = "Already logged in somewhere else.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		case FAILURE:
+			msg = "This user doesn't exist--cannot log in.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		case LOGGED_IN:
+			msg = "Successfully logged in.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		default:
+			log->Error("Invalid STATUS.");
+			exit(EXIT_FAILURE);
+			break;
+	}	
+
+	SendResponse(i, new ResponseData(status, message, username));
+}
+
+
+void HandleLogout(int i, CommandData* commandData) {
+	const char* username = commandData->getArgs()[0];
+
+	Status status = ds.Login(username);
+	char* message;
+	const char* msg;
+
+	switch(status) {
+		case OK:
+			// should never happen
+			msg = "This user is not logged in. This shouldn't be possible.";
+			message = new char[strlen(msg) + 1];
+			strcpy(message, msg);
+			break;
+		case LOGGED_OUT:
+			msg = "Successfully logged out.";
 			message = new char[strlen(msg) + 1];
 			strcpy(message, msg);
 			break;

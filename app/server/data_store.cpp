@@ -4,8 +4,9 @@
 Status DataStore::Register(const char* username, const char* password) {
     std::string usr(username);
 
+    std::cout << "DataStore.Register(): comparing " << username << " with:" << std::endl;
     for (auto e : m) {
-        std::cout << e.first << std::endl;
+        std::cout << "\t- " << e.first << std::endl;
     }
 
     if (m.find(usr) != m.end()) {
@@ -25,12 +26,12 @@ Status DataStore::Login(const char* username, const char* password) {
     } 
 
     if (IsLoggedIn(username)) {
-        return FAILURE;
+        return OK;
     }
 
     // actually perform log in
     profiles.push_back(new Profile(username));
-    return OK;
+    return LOGGED_IN;
 }
 
 
@@ -39,8 +40,10 @@ Status DataStore::Logout(const char* username) {
     if (index != -1) {
         delete profiles.at(index);
         profiles.erase(profiles.begin() + index);
-    } 
-    return OK;
+    } else {
+        return OK;
+    }
+    return LOGGED_OUT;
 }
 
 

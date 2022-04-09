@@ -32,14 +32,15 @@ class Client {
         bool IsUiOrFileConn(int i);
         void PrintToUi(int i);
         void PrintResponse(ResponseData* responseData);
+        void StartCommand(CommandData* command, struct sockaddr_in serverAddr);
 
         int nConns = 0;
         pollfd peers[MAX_CONNS];
-        CommandData* activeCmds[MAX_CONNS];
         SendStat sStats[MAX_CONNS];
         RecvStat rStats[MAX_CONNS];
         Log* log;
         SocketMessenger* sockMsgr;
+        char* loggedInUser = NULL;
 };
 
 #endif

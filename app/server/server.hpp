@@ -39,6 +39,8 @@ class Server {
     void RemoveConnection(int i);
     void HandleReceivedCommand(int i, CommandData* commandData);
     void HandleRegister(int i, CommandData* commandData);
+    void HandleLogin(int i, CommandData* commandData);
+    void HandleLogout(int i, CommandData* commandData);
     void SendResponse(int i, ResponseData* responseData);
     
     bool IsUiOrFileConn(int i);

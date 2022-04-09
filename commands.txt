@@ -1,3 +1,8 @@
 REGISTER mario foobar00
-REGISTER mario dingle
+REGISTER steph dog12
 REGISTER lucas 1234
+REGISTER mario foobar00
+LOGIN lucas 12000
+LOGIN lucas 1234
+LOGOUT lucas
+

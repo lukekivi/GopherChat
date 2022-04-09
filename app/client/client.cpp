@@ -32,14 +32,8 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	while (1) {	
 
 		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
-			int i = BuildConn(serverAddr);
-			activeCmds[i] = commands.at(commandIndex);
+			StartCommand(commands.at(commandIndex), serverAddr);
 			commandIndex++;
-
-			int len;
-			BYTE* body = sockMsgr->CommandDataToByte(activeCmds[i], &len);
-			sockMsgr->BuildSendMsg(&sStats[i], body, len);
-			SendMessage(i);
 		}
 
 		int r = poll(peers, nConns, -1);	
@@ -208,6 +202,7 @@ void Client::SetLog(Log* log) {
 void Client::HandleResponse(BYTE* body, int len) {
 	ResponseData* responseData = sockMsgr->ByteToResponseData(body);
 	Status status = responseData->GetStatus();
+	const char* username;
 
 	switch(status) {
 		case OK:
@@ -215,8 +210,13 @@ void Client::HandleResponse(BYTE* body, int len) {
 		case FAILURE:
 			break;
 		case LOGGED_IN:
+			username = responseData->getUsername();
+			loggedInUser = new char[strlen(username)+1];
+			strcpy(loggedInUser, username);
 			break;
 		case LOGGED_OUT:
+			delete[] loggedInUser;
+			loggedInUser = NULL;
 			break;
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
@@ -250,4 +250,36 @@ void Client::PrintResponse(ResponseData* responseData) {
 	const char* username = responseData->getUsername();
 
 	std::cout << username << ": " << msg << std::endl;
+}
+
+
+void Client::StartCommand(CommandData* commandData, struct sockaddr_in serverAddr) {
+	switch(commandData->getCommand()) {
+		case LOGIN:
+			if (loggedInUser != NULL) {
+				std::cout << "You are already logged in as: " << loggedInUser << std::endl;
+				return;
+			}
+			break;
+		case LOGOUT:
+			if (loggedInUser == NULL) {
+				std::cout << "You cannot logout if you are not yet logged in!" << std::endl;
+				return;
+			}
+			break;
+		case DELAY:
+			break;
+		default:
+			if (loggedInUser == NULL) {
+				std::cout << "You cannot contact GopherChat until you are logged in!" << std::endl;
+				return;
+			}
+	}
+
+	int i = BuildConn(serverAddr);
+
+	int len;
+	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
+	sockMsgr->BuildSendMsg(&sStats[i], body, len);
+	SendMessage(i);
 }

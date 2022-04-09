@@ -26,10 +26,10 @@ log:
 
 # RUN EXECUTABLES
 run_server: server_main
-	valgrind ./build/server/server_main $(port_num)
+	./build/server/server_main $(port_num)
 
 run_client: client_main
-	valgrind ./build/client/client_main $(server_ip) $(port_num) $(command_file)
+	./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
 server_main: server_main.o server.o socket_messenger.o data_store.o log.o log
@@ -115,7 +115,7 @@ user_input_main.o: testfiles/utils/userInput/user_input_main.cpp tests
 
 ## SOCKET MESSENGER / SCRIPT READER INTEGRATION TESTS
 run_command_conversion_tests: command_conversion_tests tests
-	valgrind ./tests/utils/userInput/command_conversion_tests
+	./tests/utils/userInput/command_conversion_tests
 
 command_conversion_tests: command_conversion_main.o script_reader.o log.o socket_messenger.o tests
 	g++ tests/objects/utils/userInput/command_conversion_main.o build/objects/utils/userInput/script_reader.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/command_conversion_tests
@@ -126,7 +126,7 @@ command_conversion_main.o: testfiles/utils/userInput/command_conversion_main.cpp
 
 ## DATA STORE TESTS
 run_data_store_tests: data_store_tests tests
-	valgrind ./tests/server/data_store_tests
+	./tests/server/data_store_tests
 
 data_store_tests: data_store_main.o data_store.o tests
 	g++ tests/objects/server/data_store_main.o build/objects/server/data_store.o -o tests/server/data_store_tests
@@ -137,7 +137,7 @@ data_store_main.o: testfiles/server/data_store_main.cpp tests
 
 ## Response conversion tests
 run_response_conversion_tests: response_conversion_tests tests
-	valgrind ./tests/utils/userInput/response_conversion_tests
+	./tests/utils/userInput/response_conversion_tests
 
 response_conversion_tests: response_conversion_main.o log.o socket_messenger.o tests
 	g++ tests/objects/utils/userInput/response_conversion_main.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/response_conversion_tests
