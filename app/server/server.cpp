@@ -299,7 +299,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 			exit(EXIT_FAILURE);
 	}	
 
-	log->Info("Log in: %s\n\t- ", username, msg);
+	log->Info("Log in: %s\n\t- ", username, message);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
@@ -329,7 +329,7 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
 	}	
-	log->Info("Log out: %s\n\t- ", username, msg);
+	log->Info("Log out: %s\n\t- ", username, message);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
