@@ -28,6 +28,7 @@ class CommandData {
         std::cout << "Got here: " << index++ << std::endl;
         for (int i = 0; i < numArgs; i++) {
             std::cout << "Got here: " << index++ << std::endl;
+            std::cout << args[i] << std::endl;
             delete[] args[i];
         }
         std::cout << "Got here: " << index++ << std::endl;

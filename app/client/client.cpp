@@ -205,27 +205,30 @@ void Client::HandleResponse(int i) {
 
 	switch(status) {
 		case OK:
-			RemoveConnection(i);
 			break;
 		case FAILURE:
-			RemoveConnection(i);
 			break;
 		case LOGGED_IN:
 			username = responseData->getUsername();
 			loggedInUser = new char[strlen(username)+1];
 			strcpy(loggedInUser, username);
 			SetupSession();
-			RemoveConnection(i);
 			break;
 		case LOGGED_OUT:
 			delete[] loggedInUser;
 			loggedInUser = NULL;
-			DisconnectFromServer();
 			break;
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
 			ExitGracefully();
 	}
+
+	if (status == LOGGED_OUT) {
+		DisconnectFromServer();
+	} else {
+		RemoveConnection(i);
+	}
+
 	PrintResponse(responseData);
 	delete responseData;
 }
