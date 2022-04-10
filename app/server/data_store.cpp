@@ -14,6 +14,7 @@ Status DataStore::Register(const char* username, const char* password) {
 
 
 Status DataStore::Login(const char* username, const char* password) {
+    std::cout << "Logging in: " << username << std::endl;
     std::string usr(username);
 
     if (!IsInMap(usr)) {
@@ -30,13 +31,12 @@ Status DataStore::Login(const char* username, const char* password) {
 
     // actually perform log in
     profiles.push_back(new Profile(username));
-    std::cout << "LOGGING IN" << std::endl;
-    FindIndexOf(usr);
     return LOGGED_IN;
 }
 
 
 Status DataStore::Logout(const char* username) {
+    std::cout << "Logging out: " << username << std::endl;
     int index = FindIndexOf(username);
     if (index != -1) {
         delete profiles.at(index);
@@ -54,9 +54,7 @@ bool DataStore::IsLoggedIn(const char* username) {
 
 
 int DataStore::FindIndexOf(const char* username) {
-    std::cout << "Find index of : " << username << std::endl;
     for (int i = 0; i < profiles.size(); i++) {
-        std::cout << "\t- " << profiles.at(i)->GetUsername() << std::endl;
         if (strcmp(profiles.at(i)->GetUsername(), username) == 0) {
             return i;
         }
