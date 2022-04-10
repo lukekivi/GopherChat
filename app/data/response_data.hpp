@@ -10,9 +10,9 @@ class ResponseData {
   public:
     ResponseData(Status status_, const char* msg_, const char* username_) {
         status = status_;
-        msg = new char[strlen(msg_)];
+        msg = new char[strlen(msg_) + 1];
         strcpy(msg, msg_);    
-        username = new char[strlen(username_)];
+        username = new char[strlen(username_) + 1];
         strcpy(username, username_);
     }
 
