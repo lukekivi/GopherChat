@@ -3,3 +3,7 @@ LOGIN lucas 1234
 LOGOUT lucas
 LOGIN steph dog12
 LOGIN evan 1234
+LOGIN lucas 1234
+REGISTER rissa 2020
+LOGOUT lucas 1234
+REGISTER steve 0000

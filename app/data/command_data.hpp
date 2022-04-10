@@ -20,19 +20,13 @@ class CommandData {
         args = commandData.args;
         numArgs = commandData.numArgs;
         username = commandData.username;
-        std::cout << "CALLED COPY CONSTRUCTOR" << std::endl;
     }
 
     ~CommandData() {
-        int index = 1;
         for (int i = 0; i < numArgs; i++) {
-            std::cout << "Got here: " << index++ << std::endl;
-            std::cout << args[i] << std::endl;
             delete[] args[i];
         }
-        std::cout << "Got here: " << index++ << std::endl;
         delete[] args;
-        std::cout << "Got here: " << index++ << std::endl;
         delete[] username;
     }
 
