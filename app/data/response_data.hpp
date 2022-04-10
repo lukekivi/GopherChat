@@ -10,8 +10,10 @@ class ResponseData {
   public:
     ResponseData(Status status_, const char* msg_, const char* username_) {
         status = status_;
-        msg = msg_;    
-        username = username_;
+        msg = new char[strlen(msg_)];
+        strcpy(msg, msg_);    
+        username = new char[strlen(username_)];
+        strcpy(username, username_);
     }
 
     ~ResponseData() {
@@ -33,8 +35,8 @@ class ResponseData {
 
   private:
     Status status;
-    const char* msg;
-    const char* username;
+    char* msg;
+    char* username;
 };
 
 #endif
