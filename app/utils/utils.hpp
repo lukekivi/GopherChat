@@ -96,4 +96,10 @@ enum Status {
 	LOGGED_OUT  = 33
 };
 
+
+enum ConnType {
+    REG = 40,
+    UI = 41,
+    FIL = 42
+};
 #endif

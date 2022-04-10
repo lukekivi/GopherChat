@@ -7,6 +7,7 @@
 #include "../data/command_data.hpp"
 #include "../utils/socket/socket_messenger.hpp"
 #include "../utils/utils.hpp"
+#include "../data/conn_data.hpp"
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
@@ -30,19 +31,21 @@ class Client {
         void CheckUi();
         void SetLog(Log* log);
         void SetNonBlockIO(int fd);
-        int BuildConn();
+        int BuildConn(ConnType connType);
         void RecvMessage(int i);
         void SendMessage(int i);
         void RemoveConnection(int i);
         BYTE* CommandToByte(CommandData* command);
         void HandleResponse(BYTE* body, int len);
-        bool IsUiOrFileConn(int i);
+        bool IsUiConn(int i);
+        bool IsFileConn(int i);
         void PrintToUi(int i);
         void PrintResponse(ResponseData* responseData);
         void StartCommand(CommandData* command);
         void SetupSession();
         CommandData* BuildUiCommand();
         void PrepareMessage(CommandData* commandData, int i);
+        void DisconnectFromServer();
 
         void ExitGracefully();
 
@@ -53,12 +56,12 @@ class Client {
         pollfd peers[MAX_CONNS];
         SendStat sStats[MAX_CONNS];
         RecvStat rStats[MAX_CONNS];
+        ConnType connTypes[MAX_CONNS];
+
         Log* log;
         SocketMessenger* sockMsgr;
 
         char* loggedInUser = NULL;
-        int uiConn = -1;
-        std::vector<int> fileConns;
 };
 
 #endif

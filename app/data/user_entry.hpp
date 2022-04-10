@@ -27,7 +27,7 @@ class UserEntry {
     }
 
   private:
-    char password[MAX_USRNAME_SIZE];
+    char password[MAX_PWD_SIZE+1];
 };
 
 #endif

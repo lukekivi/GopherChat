@@ -15,9 +15,6 @@ class DataStore {
     Status Logout(const char* username);
     bool IsLoggedIn(const char* username);
 
-    int SetUiConn(const char* username, int i);
-    int GetUiConn(const char* username);
-    int AttemptLogoutConnLoss(int i);
   private:
     int FindIndexOf(const char* username);
     bool IsInMap(std::string username);

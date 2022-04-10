@@ -20,6 +20,8 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	serverAddr.sin_port = htons((unsigned short) port);
 	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
 
+	signal(SIGPIPE, SIG_IGN);
+
 	std::cout << "Welcome to GopherChat!" << std:: endl;
 
 	while (1) {	
@@ -80,18 +82,18 @@ void Client::SetNonBlockIO(int fd) {
 }
 
 
-int Client::BuildConn() {
+int Client::BuildConn(ConnType connType) {
 	if (nConns > MAX_CONNS) {
 		log->Error("Too many conns.");
 		ExitGracefully();
 	}
 
+	connTypes[nConns] = connType;
+
 	memset(&rStats[nConns], 0, sizeof(RecvStat));
 	memset(&sStats[nConns], 0, sizeof(SendStat));
 	sockMsgr->InitRecvStat(&rStats[nConns]);
 	sockMsgr->InitSendStat(&sStats[nConns]);
-
-	signal(SIGPIPE, SIG_IGN);
 
 	memset(&peers[nConns], 0, sizeof(pollfd));	
 	peers[nConns].events = POLLRDNORM;	
@@ -129,10 +131,12 @@ void Client::RecvMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// successfully read from socket
-			if (!IsUiOrFileConn(i)) {
+			if (!IsUiConn(i) && !IsFileConn(i)) {
+				std::cout << "Handling response!" << std::endl;
 				HandleResponse(rStats[i].bodyStat.msg, rStats[i].bodyStat.size);
 				RemoveConnection(i);
 			} else {
+				std::cout << "Handling UI!" << std::endl;
 				PrintToUi(i);
 				sockMsgr->InitRecvStat(&rStats[i]);
 			}
@@ -182,18 +186,9 @@ void Client::RemoveConnection(int i) {
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
 		memmove(rStats + i, rStats + i + 1, (nConns-i) * sizeof(struct RecvStat));
 		memmove(sStats + i, sStats + i + 1, (nConns-i) * sizeof(struct SendStat));
+		memmove(connTypes + i, connTypes + i + 1, (nConns-i) * sizeof(ConnType));
 	}
 	nConns--;
-
-	if (uiConn == i) {
-		uiConn = -1;
-	} else {
-		for (int j = 0; j < fileConns.size(); j++) {
-			if (fileConns.at(j) == i) {
-				fileConns.erase(fileConns.begin() + j);
-			}
-		}
-	}
 }
 
 
@@ -221,6 +216,7 @@ void Client::HandleResponse(BYTE* body, int len) {
 		case LOGGED_OUT:
 			delete[] loggedInUser;
 			loggedInUser = NULL;
+			DisconnectFromServer();
 			break;
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
@@ -231,8 +227,12 @@ void Client::HandleResponse(BYTE* body, int len) {
 }
 
 
-bool Client::IsUiOrFileConn(int i) {
-	return false;
+bool Client::IsUiConn(int i) {
+	return connTypes[i] == UI;
+}
+
+bool Client::IsFileConn(int i) {
+	return connTypes[i] == FIL;
 }
 
 
@@ -282,7 +282,7 @@ void Client::StartCommand(CommandData* commandData) {
 			}
 	}
 
-	int i = BuildConn();
+	int i = BuildConn(REG);
 	PrepareMessage(commandData, i);
 	SendMessage(i);
 }
@@ -302,13 +302,12 @@ void Client::ExitGracefully() {
 
 void Client::SetupSession() {
 	// setup UI connection
-	int i = BuildConn();
-	uiConn = i;
+	int i = BuildConn(UI);
 	CommandData* uiCommandData = BuildUiCommand();
 	PrepareMessage(uiCommandData, i);
 
 	delete uiCommandData;  // generalize deletion after BYTE CONVERSION
-
+	std::cout << "Starting UI conn: " << i << std::endl;
 	SendMessage(i);
 }
 
@@ -326,4 +325,13 @@ void Client::PrepareMessage(CommandData* commandData, int i) {
 	int len;
 	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
 	sockMsgr->BuildSendMsg(&sStats[i], body, len);
+}
+
+
+void Client::DisconnectFromServer() {
+	for (int i = 0; i < nConns; i++) {
+		if (IsFileConn(i) || IsUiConn(i)) {
+			RemoveConnection(i);
+		}
+	}
 }

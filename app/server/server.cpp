@@ -73,15 +73,7 @@ void Server::StartServer(int port) {
 		if ((peers[0].revents & POLLRDNORM) && (nConns < MAX_CONCURRENCY_LIMIT)) {					
 			int fd = accept(listenFD, (struct sockaddr *)&clientAddr, &clientAddrLen);
 			if (fd != -1) {
-				SetNonBlockIO(fd);
-				nConns++;
-				peers[nConns].fd = fd;
-				peers[nConns].events = POLLRDNORM;
-				peers[nConns].revents = 0;
-
-				memset(&sStat[nConns], 0, sizeof(struct SendStat));
-				memset(&rStat[nConns], 0, sizeof(struct RecvStat));
-				sockMsgr->InitRecvStat(&rStat[nConns]);
+				SetConn(fd);
 			}
 		}
 		
@@ -111,9 +103,9 @@ void Server::RecvMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// successfully read from socket
-			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg);
-			sockMsgr->InitRecvStat(&rStat[i]);
-			HandleReceivedCommand(i, commandData);
+			commandData = sockMsgr->ByteToCommandData(rStat[i].bodyStat.msg); // convert
+			sockMsgr->InitRecvStat(&rStat[i]);		// reset receiving data structure
+			HandleReceivedCommand(i, commandData); 	// handle command
 			delete commandData;
 			break;
 		case BLOCKED:
@@ -138,10 +130,10 @@ void Server::SendMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// Reset sStat
-			if (!IsUiOrFileConn(i)) {
-				RemoveConnection(i);
+			if (!IsFileConn(i) && !IsUiConn(i)) {
+				RemoveConnection(i);				  // Remove transient conn
 			} else {
-				sockMsgr->RefreshSendStat(&sStat[i]);
+				sockMsgr->RefreshSendStat(&sStat[i]); // UI/FILE conn needs to be refreshed
 			}
 			break;
 		case BLOCKED:
@@ -175,16 +167,25 @@ void Server::RemoveConnection(int i) {
 	delete[] rStat[i].bodyStat.msg;
 	delete[] sStat[i].msg;
 
+	if (ds.Logout(connData[i].GetUsername()) == LOGGED_OUT) {
+		log->Info("Logged out a user because their file or UI connection failed.");
+	}
+	
+	if (IsUiConn(i)) {
+		std::cout << "Removed UI Connection for: " << connData[i].GetUsername() << std::endl;
+	} else if (IsFileConn(i)) {
+		std::cout << "Removed FIL Connection for: " << connData[i].GetUsername() << std::endl;
+	} else{
+		std::cout << "Removed REG Connection" << std::endl;
+	}
+
 	if (i < nConns) {	
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
 		memmove(rStat + i, rStat + i + 1, (nConns-i) * sizeof(struct RecvStat));
 		memmove(sStat + i, sStat + i + 1, (nConns-i) * sizeof(struct SendStat));
+		memmove(connData + i, connData + i + 1, (nConns-i) * sizeof(ConnData));
 	}
 	nConns--;
-
-	if (ds.AttemptLogoutConnLoss(i) == 1) {
-		log->Info("Logged out a user because their file or UI connection failed.");
-	}
 }
 
 
@@ -221,11 +222,11 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 		case DELAY:
 			break;
 		case UI_CONN:
-			ds.SetUiConn(commandData->getUsername(), i);
+			SetUiConn(i, commandData);
 			SendMessageToUi(commandData->getUsername(), "here is a ui message");
 			break;
 		case FILE_CONN:
-			// ds.SetFileConn(commandData.getUsername(), i);
+
 			break;
 		default:
 			log->Error("Invalid COMMAND: %d", commandData->getCommand());
@@ -346,17 +347,20 @@ void Server::SendResponse(int i, ResponseData* responseData) {
 }
 
 
-bool Server::IsUiOrFileConn(int i) {
-	// check if conn[i] is a UI/File conn
-	return false;
+bool Server::IsUiConn(int i) {
+	return connData[i].GetConnType() == UI;
+}
+
+bool Server::IsFileConn(int i) {
+	return connData[i].GetConnType() == FIL;
 }
 
 
 void Server::SendMessageToUi(const char* username, const char* message) {
-	int index = ds.GetUiConn(username);
+	int index = GetUiConn(username);
 
 	if (index == -1) {
-		log->Error("Attempt to send message to non-logged in user");
+		log->Error("Didn't find a match for \"%s\" in logged in users", username);
 		ExitGracefully();
 	}
 
@@ -374,4 +378,33 @@ void Server::ExitGracefully() {
 	delete sockMsgr;
 
 	exit(EXIT_SUCCESS);
+}
+
+
+void Server::SetConn(int fd) {
+	SetNonBlockIO(fd);
+	nConns++;
+	peers[nConns].fd = fd;
+	peers[nConns].events = POLLRDNORM;
+	peers[nConns].revents = 0;
+
+	memset(&sStat[nConns], 0, sizeof(struct SendStat));
+	memset(&rStat[nConns], 0, sizeof(struct RecvStat));
+	connData[nConns].SetConnType(REG);
+	sockMsgr->InitRecvStat(&rStat[nConns]);
+}
+
+
+void Server::SetUiConn(int i, CommandData* commandData) {
+	connData[i].SetUsername(commandData->getUsername());
+	connData[i].SetConnType(UI);
+}
+
+int Server::GetUiConn(const char* username) {
+	for (int i = 1; i <= nConns; i++) {
+		if (strcmp(connData[i].GetUsername(), username) == 0) {
+			return i;
+		}
+	}
+	return -1;
 }

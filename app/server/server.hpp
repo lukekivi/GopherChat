@@ -20,6 +20,7 @@
 #include "data_store.hpp"
 #include "../utils/utils.hpp"
 #include "../data/response_data.hpp"
+#include "../data/conn_data.hpp"
 
 #define MAX_REQUEST_SIZE 10000000
 #define MAX_CONCURRENCY_LIMIT 64
@@ -42,9 +43,12 @@ class Server {
     void HandleLogin(int i, CommandData* commandData);
     void HandleLogout(int i, CommandData* commandData);
     void SendResponse(int i, ResponseData* responseData);
-    
-    bool IsUiOrFileConn(int i);
+    bool IsUiConn(int i);
+    bool IsFileConn(int i);
     void SendMessageToUi(const char* username, const char* message);
+    void SetConn(int fd);
+    void SetUiConn(int i, CommandData* commandData);
+    int GetUiConn(const char* username);
 
     void ExitGracefully();
 
@@ -56,6 +60,8 @@ class Server {
     struct pollfd peers[MAX_CONCURRENCY_LIMIT+1];	   // sockets to be monitored by poll()
     struct SendStat sStat[MAX_CONCURRENCY_LIMIT+1]; // send stats
     struct RecvStat rStat[MAX_CONCURRENCY_LIMIT+1]; // recv stats
+    ConnData connData[MAX_CONCURRENCY_LIMIT+1];      // data structure that identifes the conns
+
 };
 
 #endif

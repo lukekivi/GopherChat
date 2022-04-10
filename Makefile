@@ -36,7 +36,7 @@ server_main: server_main.o server.o socket_messenger.o data_store.o log.o log
 	g++ build/objects/server/server_main.o build/objects/server/server.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/server/data_store.o -o build/server/server_main
 
 client_main: client_main.o client.o socket_messenger.o script_reader.o log.o log
-	g++ -pthread build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/utils/userInput/script_reader.o -o build/client/client_main
+	g++ build/objects/client/client_main.o build/objects/client/client.o build/objects/utils/socket/socket_messenger.o build/objects/utils/log.o build/objects/utils/userInput/script_reader.o -o build/client/client_main
 
 # OBJECTS
 server_main.o: app/server/server_main.cpp build
@@ -71,15 +71,17 @@ tests:
 	mkdir -p tests
 	mkdir -p tests/server
 	mkdir -p tests/utils
+	mkdir -p tests/data
 	mkdir -p tests/utils/socket
 	mkdir -p tests/utils/userInput
 	mkdir -p tests/objects
 	mkdir -p tests/objects/utils
+	mkdir -p tests/objects/data
 	mkdir -p tests/objects/utils/socket
 	mkdir -p tests/objects/utils/userInput
 	mkdir -p tests/objects/server
 	
-run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests run_response_conversion_tests run_response_conversion_tests
+run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests run_response_conversion_tests run_response_conversion_tests run_conn_data_tests
 
 ## LOG TESTS
 run_log_tests: log_tests 
@@ -135,7 +137,7 @@ data_store_main.o: testfiles/server/data_store_main.cpp tests
 	g++ -c testfiles/server/data_store_main.cpp -o tests/objects/server/data_store_main.o
 
 
-## Response conversion tests
+## RESPONSE CONVERSTION TESTS
 run_response_conversion_tests: response_conversion_tests tests
 	./tests/utils/userInput/response_conversion_tests
 
@@ -144,3 +146,14 @@ response_conversion_tests: response_conversion_main.o log.o socket_messenger.o t
 
 response_conversion_main.o: testfiles/utils/userInput/response_conversion_main.cpp tests
 	g++ -c testfiles/utils/userInput/response_conversion_main.cpp -o tests/objects/utils/userInput/response_conversion_main.o
+
+
+## CONN DATA TESTS
+run_conn_data_tests: conn_data_tests tests
+	./tests/data/conn_data_tests
+
+conn_data_tests: conn_data_main.o tests
+	g++ tests/objects/data/conn_data_main.o -o tests/data/conn_data_tests
+
+conn_data_main.o: testfiles/data/conn_data_main.cpp tests
+	g++ -c testfiles/data/conn_data_main.cpp -o tests/objects/data/conn_data_main.o
