@@ -133,8 +133,7 @@ void Client::RecvMessage(int i) {
 			// successfully read from socket
 			if (!IsUiConn(i) && !IsFileConn(i)) {
 				std::cout << "Handling response!" << std::endl;
-				HandleResponse(rStats[i].bodyStat.msg, rStats[i].bodyStat.size);
-				RemoveConnection(i);
+				HandleResponse(i);
 			} else {
 				std::cout << "Handling UI!" << std::endl;
 				PrintToUi(i);
@@ -177,6 +176,8 @@ void Client::SendMessage(int i) {
  * remove a connection and cleanup its data
  */
 void Client::RemoveConnection(int i) {
+	std::cout << "removing connection:" << i << std::endl;
+	std::cout << "\t-" << connTypes[i] << std::endl;
 	close(peers[i].fd);	
 	delete[] rStats[i].sizeStat.msg;
 	delete[] rStats[i].bodyStat.msg;
@@ -197,21 +198,24 @@ void Client::SetLog(Log* log) {
 }
 
 
-void Client::HandleResponse(BYTE* body, int len) {
-	ResponseData* responseData = sockMsgr->ByteToResponseData(body);
+void Client::HandleResponse(int i) {
+	ResponseData* responseData = sockMsgr->ByteToResponseData(rStats[i].bodyStat.msg);
 	Status status = responseData->GetStatus();
 	const char* username;
 
 	switch(status) {
 		case OK:
+			RemoveConnection(i);
 			break;
 		case FAILURE:
+			RemoveConnection(i);
 			break;
 		case LOGGED_IN:
 			username = responseData->getUsername();
 			loggedInUser = new char[strlen(username)+1];
 			strcpy(loggedInUser, username);
 			SetupSession();
+			RemoveConnection(i);
 			break;
 		case LOGGED_OUT:
 			delete[] loggedInUser;
@@ -237,12 +241,13 @@ bool Client::IsFileConn(int i) {
 
 
 void Client::PrintToUi(int i) {
+	int index = 11;
 	int size = rStats[i].bodyStat.size;
 	char body[size + 1];
 	body[size] = '\0';
 
-	for (int i = 0; i < size; i++) {
-		body[i] = (char) rStats[i].bodyStat.msg[i];
+	for (int j = 0; j < size; j++) {
+		body[j] = (char) rStats[i].bodyStat.msg[j];
 	}
 
 	std::cout << body << std::endl;
@@ -331,6 +336,7 @@ void Client::PrepareMessage(CommandData* commandData, int i) {
 void Client::DisconnectFromServer() {
 	for (int i = 0; i < nConns; i++) {
 		if (IsFileConn(i) || IsUiConn(i)) {
+			std::cout << "Trying to disconnect from server" << std::endl;
 			RemoveConnection(i);
 		}
 	}

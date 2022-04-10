@@ -36,7 +36,7 @@ class Client {
         void SendMessage(int i);
         void RemoveConnection(int i);
         BYTE* CommandToByte(CommandData* command);
-        void HandleResponse(BYTE* body, int len);
+        void HandleResponse(int i);
         bool IsUiConn(int i);
         bool IsFileConn(int i);
         void PrintToUi(int i);
