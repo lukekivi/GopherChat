@@ -389,5 +389,6 @@ void Client::DisconnectFromServer() {
 
 
 void Client::Pause(int secs) {
+	std::cout << "Paused" << std::endl;
 	usleep(secs * 1000000);
 }

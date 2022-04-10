@@ -167,9 +167,12 @@ void Server::RemoveConnection(int i) {
 	delete[] rStat[i].bodyStat.msg;
 	delete[] sStat[i].msg;
 
-	if (ds.IsLoggedIn(connData[i].GetUsername())) {
+	if ((IsUiConn(i) || IsFileConn(i)) && ds.IsLoggedIn(connData[i].GetUsername())) {
 		ds.Logout(connData[i].GetUsername());
 		log->Info("Logged out a user because their file or UI connection failed.");
+		std::cout << "Logged out a user because their file or UI connection failed." << std::endl;
+	} else {
+		std::cout << "RemoveConnection: Didn't log anybody out" << std::endl;
 	}
 	
 	if (IsUiConn(i)) {
@@ -271,6 +274,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 	const char* password = commandData->getArgs()[1];
 	Status status = ds.Login(username, password);
 	log->Info("Logging in: %s", username);
+	std::cout << "Logging in: " << username << std::endl;
 	char* message;
 	const char* msg;
 
