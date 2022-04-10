@@ -52,7 +52,9 @@ bool DataStore::IsLoggedIn(const char* username) {
 
 
 int DataStore::FindIndexOf(const char* username) {
+    std::cout << "Find index of : " << username << std::endl;
     for (int i = 0; i < profiles.size(); i++) {
+        std::cout << "\t- " << profiles.at(i)->GetUsername() << std::endl;
         if (strcmp(profiles.at(i)->GetUsername(), username) == 0) {
             return i;
         }
