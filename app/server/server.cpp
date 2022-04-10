@@ -190,10 +190,10 @@ void Server::RemoveConnection(int i) {
 
 
 void Server::HandleReceivedCommand(int i, CommandData* commandData) {
-	std::cout << "Server.HandleReceivedCommand(): " << commandData->getCommand() << std::endl;
-	for (int i = 0; i < commandData->getNumArgs(); i++) {
-		std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
-	}
+	// std::cout << "Server.HandleReceivedCommand(): " << commandData->getCommand() << std::endl;
+	// for (int i = 0; i < commandData->getNumArgs(); i++) {
+	// 	std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
+	// }
 
 	switch (commandData->getCommand()) {
 		case REGISTER:
@@ -308,6 +308,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 void Server::HandleLogout(int i, CommandData* commandData) {
 	const char* username = commandData->getUsername();
 	log->Info("Logging out: %s", username);
+	std::cout << "Logging out: " << username << std::endl;
 
 	Status status = ds.Logout(username);
 	char* message;
