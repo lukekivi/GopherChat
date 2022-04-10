@@ -167,7 +167,7 @@ void Server::RemoveConnection(int i) {
 	delete[] rStat[i].bodyStat.msg;
 	delete[] sStat[i].msg;
 
-	if (ds.IsLoggedIn(connData[i].GetUsername()) {
+	if (ds.IsLoggedIn(connData[i].GetUsername())) {
 		ds.Logout(connData[i].GetUsername());
 		log->Info("Logged out a user because their file or UI connection failed.");
 	}
