@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include <unistd.h>
 
 Client::Client(Log* log) { 
 	SetLog(log); 
@@ -25,7 +26,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	std::cout << "Welcome to GopherChat!" << std:: endl;
 
 	while (1) {	
-
 		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
 			StartCommand(commands.at(commandIndex));
 			commandIndex++;
@@ -132,10 +132,8 @@ void Client::RecvMessage(int i) {
 		case OKAY:
 			// successfully read from socket
 			if (!IsUiConn(i) && !IsFileConn(i)) {
-				std::cout << "Handling response!" << std::endl;
 				HandleResponse(i);
 			} else {
-				std::cout << "Handling UI!" << std::endl;
 				PrintToUi(i);
 				sockMsgr->InitRecvStat(&rStats[i]);
 			}
@@ -177,7 +175,16 @@ void Client::SendMessage(int i) {
  */
 void Client::RemoveConnection(int i) {
 	std::cout << "removing connection:" << i << std::endl;
-	std::cout << "\t-" << connTypes[i] << std::endl;
+	std::cout << "\t- ";
+
+	if (connTypes[i] == REG) {
+		std::cout << "REG" << std::endl;
+	} else if (connTypes[i] == FIL) {
+		std::cout << "FIL" << std::endl;
+	} else {
+		std::cout << "UI" << std::endl;
+	}
+
 	close(peers[i].fd);	
 	delete[] rStats[i].sizeStat.msg;
 	delete[] rStats[i].bodyStat.msg;
@@ -209,12 +216,14 @@ void Client::HandleResponse(int i) {
 		case FAILURE:
 			break;
 		case LOGGED_IN:
+			unconfirmedLogin = false;	// login is confirmed
 			username = responseData->getUsername();
 			loggedInUser = new char[strlen(username)+1];
 			strcpy(loggedInUser, username);
 			SetupSession();
 			break;
 		case LOGGED_OUT:
+			unconfirmedLogout = false; 	// logout is confirmed
 			delete[] loggedInUser;
 			loggedInUser = NULL;
 			break;
@@ -266,21 +275,23 @@ void Client::PrintResponse(ResponseData* responseData) {
 
 
 void Client::StartCommand(CommandData* commandData) {
+	std::cout << "Starting Command: " << commandData->getCommand() << std::endl;
+
 	switch(commandData->getCommand()) {
 		case LOGIN:
-			if (loggedInUser != NULL) {
-				std::cout << "You are already logged in as: " << loggedInUser << std::endl;
-				return;
+			if (StartLogin() == 1) {
+				return; // error
 			}
 			break;
 		case LOGOUT:
-			if (loggedInUser == NULL) {
-				std::cout << "You cannot logout if you are not yet logged in!" << std::endl;
-				return;
+			if (StartLogout() == 1) {
+				return; // error
 			}
 			commandData->setUsername(loggedInUser);
 			break;
 		case DELAY:
+			Pause(atoi(commandData->getArgs()[0]));
+			return;
 		case REGISTER:
 			break;
 		default:
@@ -293,6 +304,37 @@ void Client::StartCommand(CommandData* commandData) {
 	int i = BuildConn(REG);
 	PrepareMessage(commandData, i);
 	SendMessage(i);
+}
+
+
+int Client::StartLogin() {
+	if (loggedInUser != NULL) {
+		if (unconfirmedLogout) {
+			std::cout << "Slow down, please. Still waiting to get a logout confirmation for: " << loggedInUser << std::endl;
+		} else {
+			std::cout << "You are already logged in as: " << loggedInUser << std::endl;
+		}
+		return 1;
+	} else if (unconfirmedLogin) {
+		std::cout << "Slow down, please. Still waiting to get a login confirmation."<< std::endl;
+		return 1;
+	} 
+	unconfirmedLogin = true;  // needs to be confirmed by server
+	return 0;
+}
+    
+
+int Client::StartLogout() {
+	if (loggedInUser == NULL) {
+		if (unconfirmedLogin) {
+			std::cout << "Slow down, please. Still waiting to get a login confirmation" << std::endl;
+		} else {
+			std::cout << "You cannot logout if you are not yet logged in!" << std::endl;
+		}
+		return 1;
+	}
+	unconfirmedLogout = true; // needs to be confirmed by server
+	return 0;
 }
 
 
@@ -343,4 +385,9 @@ void Client::DisconnectFromServer() {
 			RemoveConnection(i);
 		}
 	}
+}
+
+
+void Client::Pause(int secs) {
+	usleep(secs * 1000000);
 }

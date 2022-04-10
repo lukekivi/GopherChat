@@ -41,11 +41,16 @@ class Client {
         bool IsFileConn(int i);
         void PrintToUi(int i);
         void PrintResponse(ResponseData* responseData);
+
         void StartCommand(CommandData* command);
+        int StartLogin();
+        int StartLogout();
+
         void SetupSession();
         CommandData* BuildUiCommand();
         void PrepareMessage(CommandData* commandData, int i);
         void DisconnectFromServer();
+        void Pause(int secs);
 
         void ExitGracefully();
 
@@ -57,6 +62,9 @@ class Client {
         SendStat sStats[MAX_CONNS];
         RecvStat rStats[MAX_CONNS];
         ConnType connTypes[MAX_CONNS];
+
+        bool unconfirmedLogout = false;
+        bool unconfirmedLogin = false;
 
         Log* log;
         SocketMessenger* sockMsgr;

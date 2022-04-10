@@ -268,8 +268,8 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 void Server::HandleLogin(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
-
 	Status status = ds.Login(username, password);
+	log->Info("Logging in: %s", username);
 	char* message;
 	const char* msg;
 
@@ -297,8 +297,9 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
-			break;
 	}	
+
+	log->Info("Log in: %s\n\t- ", username, msg);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
@@ -306,6 +307,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 
 void Server::HandleLogout(int i, CommandData* commandData) {
 	const char* username = commandData->getUsername();
+	log->Info("Logging out: %s", username);
 
 	Status status = ds.Logout(username);
 	char* message;
@@ -326,8 +328,8 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
-			break;
 	}	
+	log->Info("Log out: %s\n\t- ", username, msg);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
