@@ -30,6 +30,8 @@ Status DataStore::Login(const char* username, const char* password) {
 
     // actually perform log in
     profiles.push_back(new Profile(username));
+    std::cout << "LOGGING IN" << std::endl;
+    FindIndexOf(usr);
     return LOGGED_IN;
 }
 

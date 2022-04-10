@@ -50,7 +50,7 @@ int main () {
         numFails++;
     }
 
-    if (ds.Login(u1.c_str(), p1.c_str()) != OK) {
+    if (ds.Login(u1.c_str(), p1.c_str()) != LOGGED_IN) {
         std::cout << "Failed to login e1" << std::endl;
         numFails++;
     }
@@ -63,13 +63,50 @@ int main () {
     // /**
     //  * Logout user one
     //  */
-    if (ds.Logout(u1.c_str()) != OK) {
+    if (ds.Logout(u1.c_str()) != LOGGED_OUT) {
         std::cout << "Failed to logout e1" << std::endl;
         numFails++;
     }
 
     if (ds.IsLoggedIn(u1.c_str())) {
         std::cout << "Failed to see that e1 was logged out" << std::endl;
+        numFails++;
+    }
+
+
+    if (numFails != 0) {
+        std::cout << "Failed " << numFails << " tests." << std::endl;
+    } else std::cout << "ok" << std::endl;
+
+
+    /**
+     * Login user two
+     */
+    if (ds.IsLoggedIn(u2.c_str())) {
+        std::cout << "Failed to see that e2 was not logged in" << std::endl;
+        numFails++;
+    }
+
+    if (ds.Login(u2.c_str(), p2.c_str()) != LOGGED_IN) {
+        std::cout << "Failed to login e2" << std::endl;
+        numFails++;
+    }
+
+    if (!ds.IsLoggedIn(u2.c_str())) {
+        std::cout << "Failed to see that e2 was logged in" << std::endl;
+        numFails++;
+    }
+
+    // /**
+    //  * Logout user one
+    //  */
+    if (ds.Logout(u2.c_str()) != LOGGED_OUT) {
+        std::cout << "Failed to logout e2" << std::endl;
+        numFails++;
+    }
+
+    if (ds.IsLoggedIn(u2.c_str())) {
+        std::cout << "Failed to see that e2 was logged out" << std::endl;
         numFails++;
     }
 
