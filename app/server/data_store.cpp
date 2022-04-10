@@ -14,7 +14,7 @@ Status DataStore::Register(const char* username, const char* password) {
 
 
 Status DataStore::Login(const char* username, const char* password) {
-    std::cout << "Logging in: " << username << std::endl;
+    std::cout << "DS: Logging in: " << username << std::endl;
     std::string usr(username);
 
     if (!IsInMap(usr)) {
@@ -36,7 +36,7 @@ Status DataStore::Login(const char* username, const char* password) {
 
 
 Status DataStore::Logout(const char* username) {
-    std::cout << "Logging out: " << username << std::endl;
+    std::cout << "DS: Logging out: " << username << std::endl;
     int index = FindIndexOf(username);
     if (index != -1) {
         delete profiles.at(index);
