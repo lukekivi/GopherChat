@@ -7,7 +7,7 @@
 ###############################
 
 port_num = 9011
-server_ip = 54.163.12.33
+server_ip = 54.172.118.127
 command_file = "commands.txt"
 
 build:

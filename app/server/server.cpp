@@ -496,6 +496,14 @@ void Server::CheckMessageDeques() {
 			ByteBody* body = ds.Dequeue(connData[i].GetUsername());
 
 			if (body != NULL) {
+				const char * message = sockMsgr->ByteToChar(body->GetBody(), body->GetLen());
+
+				log->Info("Dequeueing and sending message for %s", connData[i].GetUsername());
+				log->Info("Body: %s", message);
+				log->Info("Body size: %d", body->GetLen());
+
+				delete[] message;
+
 				sockMsgr->InitSendStat(&sStat[i]);
 				sockMsgr->BuildSendMsg(&sStat[i], body->GetBody(), body->GetLen());
 				connData[i].Activate();

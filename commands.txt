@@ -1,3 +1,5 @@
-REGISTER evan 1234
-LOGIN evan 1234
+REGISTER lucas 1234
+LOGIN lucas 1234
 DELAY 3
+SEND Hello
+

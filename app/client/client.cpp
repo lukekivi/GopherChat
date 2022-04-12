@@ -81,14 +81,8 @@ int Client::BuildConn(ConnType connType) {
 		log->Error("Cannot create socket.");		
 	}
 
-
-	/**
-	 * TODO() HANGS IF SERVER NOT ACTIVE **********************
-	 */
-
 	//Connect to server
 	if (connect(peers[nConns].fd, (const struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
-		std::cout << " got here " << std::endl;
 		log->Error("Cannot connect to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
 		ExitGracefully();
 	}
@@ -235,16 +229,15 @@ bool Client::IsFileConn(int i) {
 
 
 void Client::PrintToUi(int i) {
-	int index = 11;
 	int size = rStats[i].bodyStat.size;
 	char body[size + 1];
 	body[size] = '\0';
 
 	for (int j = 0; j < size; j++) {
-		body[j] = (char) rStats[i].bodyStat.msg[j];
+		std::cout << "print: " << body[j] << std::endl;	
 	}
 
-	std::cout << body << std::endl;
+	std::cout <<"UI: " << body << std::endl;
 }
 
 
