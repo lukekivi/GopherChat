@@ -482,6 +482,7 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
 
 void Server::StartMessageToAllUsers(char* username, CommandData* commandData) {
 	int len = 0;
+
 	const BYTE* body = sockMsgr->CharToByte(commandData->getArgs()[0]);
 	
 	const char * message = sockMsgr->ByteToChar(body, len);
