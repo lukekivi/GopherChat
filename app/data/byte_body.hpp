@@ -5,9 +5,18 @@
 
 class ByteBody {
   public:
-    ByteBody(const BYTE* body_, int len_) {
+    ByteBody(BYTE* body_, int len_) {
         len = len_;
         body = body_;
+    }
+
+    ByteBody(ByteBody* byteBody) {
+        len = byteBody->len;
+        body = new BYTE[len];
+
+        for (int i = 0; i < len; i++) {
+            body[i] = (BYTE) byteBody->body[i];
+        }
     }
 
     ~ByteBody() {
@@ -15,7 +24,7 @@ class ByteBody {
     }
 
 
-    const BYTE* GetBody() {
+    BYTE* GetBody() {
         return body;
     }
 
@@ -24,7 +33,7 @@ class ByteBody {
     }
 
   private:
-    const BYTE* body;
+    BYTE* body;
     int len;
 };
 

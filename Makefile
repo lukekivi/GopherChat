@@ -117,7 +117,7 @@ user_input_main.o: testfiles/utils/userInput/user_input_main.cpp tests
 
 ## SOCKET MESSENGER / SCRIPT READER INTEGRATION TESTS
 run_command_conversion_tests: command_conversion_tests tests
-	./tests/utils/userInput/command_conversion_tests
+	valgrind ./tests/utils/userInput/command_conversion_tests
 
 command_conversion_tests: command_conversion_main.o script_reader.o log.o socket_messenger.o tests
 	g++ tests/objects/utils/userInput/command_conversion_main.o build/objects/utils/userInput/script_reader.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/command_conversion_tests
@@ -139,7 +139,7 @@ data_store_main.o: testfiles/server/data_store_main.cpp tests
 
 ## RESPONSE CONVERSTION TESTS
 run_response_conversion_tests: response_conversion_tests tests
-	./tests/utils/userInput/response_conversion_tests
+	valgrind ./tests/utils/userInput/response_conversion_tests
 
 response_conversion_tests: response_conversion_main.o log.o socket_messenger.o tests
 	g++ tests/objects/utils/userInput/response_conversion_main.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/response_conversion_tests
@@ -150,10 +150,22 @@ response_conversion_main.o: testfiles/utils/userInput/response_conversion_main.c
 
 ## CONN DATA TESTS
 run_conn_data_tests: conn_data_tests tests
-	./tests/data/conn_data_tests
+	valgrind ./tests/data/conn_data_tests
 
 conn_data_tests: conn_data_main.o tests
 	g++ tests/objects/data/conn_data_main.o -o tests/data/conn_data_tests
 
 conn_data_main.o: testfiles/data/conn_data_main.cpp tests
 	g++ -c testfiles/data/conn_data_main.cpp -o tests/objects/data/conn_data_main.o
+
+
+
+## MSG CONVERSTION TESTS
+run_msg_conversion_tests: msg_conversion_tests tests
+	valgrind ./tests/utils/userInput/msg_conversion_tests
+
+msg_conversion_tests: msg_conversion_main.o log.o socket_messenger.o tests
+	g++ tests/objects/utils/userInput/msg_conversion_main.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/userInput/msg_conversion_tests
+
+msg_conversion_main.o: testfiles/utils/userInput/msg_conversion_main.cpp tests
+	g++ -c testfiles/utils/userInput/msg_conversion_main.cpp -o tests/objects/utils/userInput/msg_conversion_main.o

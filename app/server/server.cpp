@@ -4,6 +4,8 @@
 #include <string>
 
 const char* ONBOARDING_MESSAGE = "UI connection established";
+const char* ANON_USERNAME = "Anon";
+const char* SERVER_USERNAME = "Server";
 
 Server::Server(Log* log) { 
 	this->log = new Log(log);
@@ -347,10 +349,9 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 
 void Server::SendResponse(int i, ResponseData* responseData) {
 	// prepare message
-	int len;
-	BYTE* body = sockMsgr->ResponseDataToByte(responseData, &len);
+	ByteBody* byteBody = sockMsgr->ResponseDataToByteBody(responseData);
 	sockMsgr->InitSendStat(&sStat[i]);
-	sockMsgr->BuildSendMsg(&sStat[i], body, len);
+	sockMsgr->BuildSendMsg(&sStat[i], byteBody);
 
 	SendMessage(i);
 
@@ -376,10 +377,11 @@ void Server::SendMessageToUi(const char* username, const char* message) {
 		ExitGracefully();
 	}
 
-	int len = strlen(message);
-	BYTE* body = sockMsgr->CharToByte(message);
+	ByteBody* byteBody = sockMsgr->CharToByteBody(message);
 	sockMsgr->InitSendStat(&sStat[index]);
-	sockMsgr->BuildSendMsg(&sStat[index], body, len);
+	sockMsgr->BuildSendMsg(&sStat[index], byteBody);
+
+	delete byteBody;
 
 	SendMessage(index);
 }
@@ -411,11 +413,20 @@ void Server::SetUiConn(int i, CommandData* commandData) {
 	connData[i].SetUsername(commandData->getUsername());
 	connData[i].SetConnType(UI);
 
-	const BYTE* body = sockMsgr->CharToByte(ONBOARDING_MESSAGE);
 	const char* username = commandData->getUsername();
 
-	ds.Enqueue(username, body, strlen(ONBOARDING_MESSAGE));
-	delete[] body;
+	char* body = new char[strlen(ONBOARDING_MESSAGE) + 1];
+	strcpy(body, ONBOARDING_MESSAGE);
+
+	char* fromUsername = new char[strlen(SERVER_USERNAME) + 1];
+	strcpy(fromUsername, SERVER_USERNAME);
+
+	MsgData* msgData = new MsgData(UI_MSG, fromUsername, body);
+
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+	ds.Enqueue(username, byteBody);
+	delete msgData;
+	delete byteBody;
 }
 
 int Server::GetUiConn(const char* username) {
@@ -451,13 +462,18 @@ void Server::HandleSend(int i, CommandData* commandData) {
 	strcpy(message, msg);
 
 	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
+
 }
 
 
 void Server::HandleSendAnon(int i, CommandData* commandData) {
 	char* username = new char[strlen(commandData->getUsername())+1];
 	strcpy(username, commandData->getUsername());
-	commandData->setUsername(NULL);
+
+	char* visibleUsername = new char[strlen(ANON_USERNAME) + 1];
+	strcpy(visibleUsername, ANON_USERNAME); 
+
+	commandData->setUsername(visibleUsername);
 	log->Info("%s: sending anonymous public message.", username);
 
 	char* message;
@@ -480,42 +496,47 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
 }
 
 
+/**
+ * @param username of the user who issued the command, is deleted elsewhere
+ * @param commandData contains the username that will be visible to the client (as well as message data)
+ */
 void Server::StartMessageToAllUsers(char* username, CommandData* commandData) {
-	int len = 0;
+	char* msg = new char[strlen(commandData->getArgs()[0]) + 1];
+	strcpy(msg, commandData->getArgs()[0]);
 
-	const BYTE* body = sockMsgr->CharToByte(commandData->getArgs()[0]);
-	
-	const char * message = sockMsgr->ByteToChar(body, len);
-	log->Info("Starting message for all from %s", username);
-	log->Info("Command: %s", commandData->getArgs()[0]);
-	log->Info("Body: %s", message);
-	log->Info("Body size: %d", len);
+	char* usr = new char[strlen(commandData->getUsername()) + 1];
+	strcpy(usr, commandData->getUsername());
 
-	ds.EnqueueAllExcept(username, body, len);
+	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
 
-	delete[] body;
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+
+	ds.EnqueueAllExcept(username, byteBody);
+
+	delete msgData;
+	delete byteBody;
 }
 
 
 void Server::CheckMessageDeques() {
 	for (int i = 0; i <= nConns; i++) {
 		if (IsUiConn(i) && !connData[i].IsActive()) {
-			ByteBody* body = ds.Dequeue(connData[i].GetUsername());
+			ByteBody* byteBody = ds.Dequeue(connData[i].GetUsername());
 
-			if (body != NULL) {
-				const char * message = sockMsgr->ByteToChar(body->GetBody(), body->GetLen());
+			if (byteBody != NULL) {
+				MsgData* msgData = sockMsgr->ByteToMsgData(byteBody->GetBody());
 
 				log->Info("Dequeueing and sending message for %s", connData[i].GetUsername());
-				log->Info("Body: %s", message);
-				log->Info("Body size: %d", body->GetLen());
+				log->Info("From: %s", msgData->GetUsername());
+				log->Info("Body: %s", msgData->GetMsg());
 
-				delete[] message;
+				delete msgData;
 
 				sockMsgr->InitSendStat(&sStat[i]);
-				sockMsgr->BuildSendMsg(&sStat[i], body->GetBody(), body->GetLen());
+				sockMsgr->BuildSendMsg(&sStat[i], byteBody);
 				connData[i].Activate();
 				SendMessage(i);
-				delete body;
+				delete byteBody;
 			}
 		}
 	}

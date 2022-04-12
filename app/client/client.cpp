@@ -110,7 +110,7 @@ void Client::RecvMessage(int i) {
 			if (!IsUiConn(i) && !IsFileConn(i)) {
 				HandleResponse(i);
 			} else {
-				PrintToUi(i);
+				HandleMsg(i);
 				sockMsgr->InitRecvStat(&rStats[i]);
 			}
 			break;
@@ -228,16 +228,8 @@ bool Client::IsFileConn(int i) {
 }
 
 
-void Client::PrintToUi(int i) {
-	int size = rStats[i].bodyStat.size;
-	char body[size + 1];
-	body[size] = '\0';
-
-	for (int j = 0; j < size; j++) {
-		std::cout << "print: " << body[j] << std::endl;	
-	}
-
-	std::cout <<"UI: " << body << std::endl;
+void Client::PrintToUi(MsgData* msgData) {
+	std::cout << "UI: " << msgData->GetUsername() << ": " << msgData->GetMsg() << std::endl;
 }
 
 
@@ -374,4 +366,23 @@ void Client::DisconnectFromServer() {
 void Client::Pause(int secs) {
 	std::cout << "Paused" << std::endl;
 	usleep(secs * 1000000);
+}
+
+
+void Client::HandleMsg(int i) {
+	MsgData* msgData = sockMsgr->ByteToMsgData(rStats[i].bodyStat.msg);
+
+	MsgType msgType = msgData->GetMsgType();
+
+	if (msgType == UI_MSG) {
+		PrintToUi(msgData);
+	} else if (msgType == FILE_MSG) {	// is FILE_MSG
+		std::cout << "Somehow got file msg?" << std::endl;
+	} else {
+		log->Error("Impossible MSG_TYPE, %d", msgType);
+		delete msgData;
+		ExitGracefully();
+	}
+
+	delete msgData;
 }

@@ -5,6 +5,8 @@
 #include "../log.hpp"
 #include "../../data/command_data.hpp"
 #include "../../data/response_data.hpp"
+#include "../../data/msg_data.hpp"
+#include "../../data/byte_body.hpp"
 
 class SocketMessenger {
   public:
@@ -12,11 +14,11 @@ class SocketMessenger {
     ~SocketMessenger() { delete log; };
     
     BYTE* IntToByte(int value);
-    int ByteToInt(BYTE* arr);
-    BYTE* CharToByte(const char* str);
+    int ByteToInt(const BYTE* arr);
+    ByteBody* CharToByteBody(const char* str);
 
     NbStatus SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer);
-    void BuildSendMsg(struct SendStat* sStat, const BYTE* msg, int len);
+    void BuildSendMsg(struct SendStat* sStat, ByteBody* byteBody);
     void InitSendStat(struct SendStat* sStat);
     void RefreshSendStat(struct SendStat* sStat);
 
@@ -26,10 +28,13 @@ class SocketMessenger {
     BYTE* CommandDataToByte(CommandData* command, int* len);
     CommandData* ByteToCommandData(BYTE* body);
 
-    BYTE* ResponseDataToByte(ResponseData* response, int* len);
+    ByteBody* ResponseDataToByteBody(ResponseData* response);
     ResponseData* ByteToResponseData(BYTE* body);
 
-    char* ByteToChar(const BYTE* body, int len);
+    char* ByteBodyToChar(ByteBody* byteBody);
+
+    ByteBody* MsgDataToByteBody(MsgData* msgData);
+    MsgData* ByteToMsgData(const BYTE* body);
     
   private:
     NbStatus RecvNB(struct MsgStat* mStat, int sockfd);
@@ -37,12 +42,15 @@ class SocketMessenger {
 
     // helpers for ByteToCommandData
     Command ReadCommand(BYTE* body);
-    char* ReadUsername(BYTE* body);
+    char* ReadUsername(const BYTE* body);
     char** ReadArgs(BYTE* body, int numArgs);
 
     // helper for ByteToResponseData
     Status ReadStatus(BYTE* body);
-    char* ReadMsg(BYTE* body);
+    char* ReadMsg(const BYTE* body);
+
+    // helper for ByteToMsgData
+    MsgType ReadMsgType(const BYTE* body);
 
     void SetLog(Log* log);
     Log* log;

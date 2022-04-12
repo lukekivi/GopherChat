@@ -22,6 +22,7 @@
 #include "../data/response_data.hpp"
 #include "../data/conn_data.hpp"
 #include "../data/byte_body.hpp"
+#include "../data/msg_data.hpp"
 
 #define MAX_REQUEST_SIZE 10000000
 #define MAX_CONCURRENCY_LIMIT 64

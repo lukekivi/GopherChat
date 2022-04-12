@@ -35,12 +35,9 @@ int TestConversion() {
     Status status = OK;
     ResponseData* response = new ResponseData(status, msg, username);
 
+    ByteBody* byteBody = sockMsgr.ResponseDataToByteBody(response);
 
-    BYTE* body = sockMsgr.ResponseDataToByte(response, &len);
-
-
-
-    ResponseData* actualResponse = sockMsgr.ByteToResponseData(body);
+    ResponseData* actualResponse = sockMsgr.ByteToResponseData(byteBody->GetBody());
     const char* actualUsername = actualResponse->getUsername();
     const char* actualMsg = actualResponse->getMsg();
     Status actualStatus = actualResponse->GetStatus();
@@ -60,8 +57,11 @@ int TestConversion() {
         numFailed++;
     }
 
-    delete actualResponse;
+    delete[] msg;
+    delete[] username;
+    delete byteBody;
     delete response;
+    delete actualResponse;
 
     return numFailed;
 }

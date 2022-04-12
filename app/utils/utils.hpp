@@ -94,9 +94,17 @@ enum Status {
 	FAILURE     = 31,
 	LOGGED_IN   = 32,
 	LOGGED_OUT  = 33,
-	UI_MSG      = 34,
-	FILE_MSG    = 35
 };
+
+
+/**
+ * Message states
+ */
+enum MsgType {
+	FILE_MSG = 50,
+	UI_MSG = 41
+};
+
 
 
 enum ConnType {

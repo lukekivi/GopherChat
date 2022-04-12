@@ -15,6 +15,7 @@
 #include <iostream>
 #include <signal.h>
 #include <fcntl.h>
+#include "../data/msg_data.hpp"
 
 #define MAX_CONNS 50
 #define RES_CONNS 1
@@ -38,7 +39,7 @@ class Client {
         void HandleResponse(int i);
         bool IsUiConn(int i);
         bool IsFileConn(int i);
-        void PrintToUi(int i);
+        void PrintToUi(MsgData* msgData);
         void PrintResponse(ResponseData* responseData);
 
         void StartCommand(CommandData* command);
@@ -50,6 +51,8 @@ class Client {
         void PrepareMessage(CommandData* commandData, int i);
         void DisconnectFromServer();
         void Pause(int secs);
+
+        void HandleMsg(int i);
 
         void ExitGracefully();
 

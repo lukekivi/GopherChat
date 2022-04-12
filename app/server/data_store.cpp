@@ -72,14 +72,14 @@ bool DataStore::IsInMap(std::string username) {
 }
 
 
-bool DataStore::Enqueue(const char* username, const BYTE* msg, int len) {
+bool DataStore::Enqueue(const char* username, ByteBody* byteBody) {
     int index = FindIndexOf(username);
 
     if (index == -1) {
         return false;
     } 
 
-    profiles.at(index).EnqueueBody(BuildByteBody(msg, len));
+    profiles.at(index).EnqueueBody(new ByteBody(byteBody));
     return true;
 }
 
@@ -95,10 +95,10 @@ ByteBody* DataStore::Dequeue(const char* username) {
 }
 
 
-void DataStore::EnqueueAllExcept(const char* username, const BYTE* msg, int len) {
+void DataStore::EnqueueAllExcept(const char* username, ByteBody* byteBody) {
     for (int i = 0; i < profiles.size(); i++) {
         if (strcmp(profiles.at(i).GetUsername(), username) != 0) {
-            profiles.at(i).EnqueueBody(BuildByteBody(msg, len));
+            profiles.at(i).EnqueueBody(new ByteBody(byteBody));
         }
     }
 }
@@ -113,16 +113,4 @@ std::vector<std::string> DataStore::GetUsersWithMsgs() {
         }       
     }
     return usernames;
-}
-
-
-ByteBody* DataStore::BuildByteBody(const BYTE* msg, int len) {
-    BYTE* message = new BYTE[len];
-    for (int i = 0; i < len; i++) {
-        message[i] = msg[i];
-    }
-
-    ByteBody* body = new ByteBody(message, len);
-
-    return body;
 }

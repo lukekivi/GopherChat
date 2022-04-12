@@ -33,7 +33,8 @@ int TestScriptRead() {
     std::vector<CommandData*> commands = scriptReader.getCommands();
 
     /** REGISTER **/
-    CommandData* commandDataOne = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(0), &len));
+    BYTE* bOne = sockMsgr.CommandDataToByte(commands.at(0), &len);
+    CommandData* commandDataOne = sockMsgr.ByteToCommandData(bOne);
     Command commandOne = commandDataOne->getCommand();
     Command expectedCommandOne = REGISTER;
     if (commandOne != expectedCommandOne) {
@@ -61,7 +62,8 @@ int TestScriptRead() {
     }
 
     /** LOGIN AND NULL USER **/
-    CommandData* commandDataTwo = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(1), &len));
+    BYTE* bTwo = sockMsgr.CommandDataToByte(commands.at(1), &len);
+    CommandData* commandDataTwo = sockMsgr.ByteToCommandData(bTwo);
     Command commandTwo = commandDataTwo->getCommand();
     Command expectedCommandTwo = LOGIN;
     if (commandTwo != expectedCommandTwo) {
@@ -94,8 +96,12 @@ int TestScriptRead() {
     }
 
     /** LOGOUT WITH USER **/
-    commands.at(2)->setUsername("kivix");
-    CommandData* commandDataThree = sockMsgr.ByteToCommandData(sockMsgr.CommandDataToByte(commands.at(2), &len));
+    std::string userThree = "kivix";
+    char* u3 = new char[userThree.length() + 1];
+    strcpy(u3, userThree.c_str());
+    commands.at(2)->setUsername(u3);
+    BYTE* bThree = sockMsgr.CommandDataToByte(commands.at(2), &len);
+    CommandData* commandDataThree = sockMsgr.ByteToCommandData(bThree);
     Command commandThree = commandDataThree->getCommand();
     Command expectedCommandThree = LOGOUT;
     if (commandThree != expectedCommandThree) {
@@ -119,6 +125,18 @@ int TestScriptRead() {
     if (strcmp(sendingUserNameThree, expectedSendingUserNameThree.c_str()) != 0) {
         std::cout << "sendingUserNameThree: " <<  sendingUserNameThree << " was not " << expectedSendingUserNameThree << std::endl;
         numFailed++;
+    }
+
+
+    delete commandDataOne;
+    delete[] bOne;
+    delete commandDataTwo;
+    delete[] bTwo;
+    delete commandDataThree;
+    delete[] bThree;
+
+    for (int i = 0; i < commands.size(); i++) {
+        delete commands.at(i);
     }
 
     // /** SEND **/

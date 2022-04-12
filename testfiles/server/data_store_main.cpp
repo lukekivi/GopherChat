@@ -262,15 +262,17 @@ int DequeTests() {
     std::string m1 = "Hello how goes it?";
     std::string m2 = "Hey, I am doing well.";
 
-    BYTE* bm1 = sockMsgr.CharToByte(m1.c_str());
-    BYTE* bm2 = sockMsgr.CharToByte(m2.c_str());
+    ByteBody* bm1 = sockMsgr.CharToByteBody(m1.c_str());
+    ByteBody* bm2 = sockMsgr.CharToByteBody(m2.c_str());
 
-    if (!ds.Enqueue(u1.c_str(), bm1, m1.length())) {
+
+
+    if (!ds.Enqueue(u1.c_str(), bm1)) {
         std::cout << "Failed to enqueue bm1" << std::endl;
         numFails++;
     }
 
-    if (!ds.Enqueue(u1.c_str(), bm2, m2.length())) {
+    if (!ds.Enqueue(u1.c_str(), bm2)) {
         std::cout << "Failed to enqueue bm2" << std::endl;
         numFails++;
     }
@@ -278,8 +280,8 @@ int DequeTests() {
     ByteBody* actual_bm1 = ds.Dequeue(u1.c_str());
     ByteBody* actual_bm2 = ds.Dequeue(u1.c_str());
 
-    char* actual_m1 = sockMsgr.ByteToChar(actual_bm1->GetBody(), actual_bm1->GetLen());
-    char* actual_m2 = sockMsgr.ByteToChar(actual_bm2->GetBody(), actual_bm2->GetLen());
+    char* actual_m1 = sockMsgr.ByteBodyToChar(actual_bm1);
+    char* actual_m2 = sockMsgr.ByteBodyToChar(actual_bm2);
 
     if (strcmp(actual_m1, m1.c_str()) != 0) {
         std::cout << "Actual_m1 was not m1" << std::endl;
@@ -293,6 +295,8 @@ int DequeTests() {
 
     delete[] actual_m1;
     delete[] actual_m2;
+    delete bm1;
+    delete bm2;
     delete actual_bm1;
     delete actual_bm2;
 
@@ -342,11 +346,11 @@ int GroupEnqueueTests() {
     std::string m1 = "Hello how goes it?";
     std::string m2 = "Hey, I am doing well.";
 
-    BYTE* bm1 = sockMsgr.CharToByte(m1.c_str());
-    BYTE* bm2 = sockMsgr.CharToByte(m2.c_str());
+    ByteBody* bm1 = sockMsgr.CharToByteBody(m1.c_str());
+    ByteBody* bm2 = sockMsgr.CharToByteBody(m2.c_str());
     
-    ds.EnqueueAllExcept(u3.c_str(), bm1, m1.length());
-    ds.EnqueueAllExcept(u3.c_str(), bm2, m2.length());
+    ds.EnqueueAllExcept(u3.c_str(), bm1);
+    ds.EnqueueAllExcept(u3.c_str(), bm2);
 
     std::vector<std::string> usernames = ds.GetUsersWithMsgs();
 
@@ -363,8 +367,8 @@ int GroupEnqueueTests() {
     ByteBody* actual_bm1 = ds.Dequeue(u1.c_str());
     ByteBody* actual_bm2 = ds.Dequeue(u1.c_str());
 
-    char* actual_m1 = sockMsgr.ByteToChar(actual_bm1->GetBody(), actual_bm1->GetLen());
-    char* actual_m2 = sockMsgr.ByteToChar(actual_bm2->GetBody(), actual_bm2->GetLen());
+    char* actual_m1 = sockMsgr.ByteBodyToChar(actual_bm1);
+    char* actual_m2 = sockMsgr.ByteBodyToChar(actual_bm2);
 
     if (strcmp(actual_m1, m1.c_str()) != 0) {
         std::cout << "Actual_m1 was not m1" << std::endl;
@@ -385,8 +389,8 @@ int GroupEnqueueTests() {
     ByteBody* actual_bm11 = ds.Dequeue(u2.c_str());
     ByteBody* actual_bm22 = ds.Dequeue(u2.c_str());
 
-    char* actual_m11 = sockMsgr.ByteToChar(actual_bm11->GetBody(), actual_bm11->GetLen());
-    char* actual_m22 = sockMsgr.ByteToChar(actual_bm22->GetBody(), actual_bm22->GetLen());
+    char* actual_m11 = sockMsgr.ByteBodyToChar(actual_bm11);
+    char* actual_m22 = sockMsgr.ByteBodyToChar(actual_bm22);
 
     if (strcmp(actual_m11, m1.c_str()) != 0) {
         std::cout << "Actual_m11 was not m1" << std::endl;
@@ -410,6 +414,9 @@ int GroupEnqueueTests() {
         std::cout << "Actual_m11 was not m1" << std::endl;
         numFails++;
     }
+
+    delete bm1;
+    delete bm2;
 
 
     return numFails;

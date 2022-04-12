@@ -15,13 +15,12 @@ class DataStore {
     Status Login(const char* username, const char* password);
     Status Logout(const char* username);
     bool IsLoggedIn(const char* username);
-    bool Enqueue(const char* username, const BYTE* msg, int len);
-    void EnqueueAllExcept(const char* username, const BYTE* msg, int len);
+    bool Enqueue(const char* username, ByteBody* byteBody);
+    void EnqueueAllExcept(const char* username, ByteBody* byteBody);
     ByteBody* Dequeue(const char* username);
     std::vector<std::string> GetUsersWithMsgs();
 
   private:
-    ByteBody* BuildByteBody(const BYTE* msg, int len);
     int FindIndexOf(const char* username);
     bool IsInMap(std::string username);
 
