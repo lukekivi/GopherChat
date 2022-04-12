@@ -411,7 +411,7 @@ char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
 }
 
 
-char* SocketMessenger::ByteToChar(BYTE* body, int len) {
+char* SocketMessenger::ByteToChar(const BYTE* body, int len) {
 	char* msg = new char[len+1];
 
 	for (int i = 0; i < len; i++) {

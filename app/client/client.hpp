@@ -28,7 +28,6 @@ class Client {
         void StartClient(const char* serverIp, int port, std::vector<CommandData*> commands_);
 
     private:
-        void CheckUi();
         void SetLog(Log* log);
         void SetNonBlockIO(int fd);
         int BuildConn(ConnType connType);

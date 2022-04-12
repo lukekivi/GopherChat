@@ -36,9 +36,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			log->Error("Invalid poll() return value.");
 		}			
 
-		// Read in UI
-		// CheckUi();
-
 		for (int i = 0; i < nConns; i++) {
 			if (peers[i].revents & POLLWRNORM) {
 				SendMessage(i);
@@ -47,27 +44,6 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 			if (peers[i].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
 				RecvMessage(i);
 			}
-		}
-	}
-}
-
-
-void Client::CheckUi() {
-	if (peers[0].revents & (POLLRDNORM | POLLERR | POLLHUP)) {	
-		// recv request
-		NbStatus status = sockMsgr->RecvMsgNB(&rStats[0], &peers[0]);
-
-		switch(status) {
-			case OKAY:
-				// successfully read from socket
-				std::cout << "UI: " << rStats[0].bodyStat.msg << std::endl;
-				sockMsgr->InitRecvStat(&rStats[0]);
-				break;
-			case BLOCKED:
-				// Just continue on
-				break;
-			case ERROR:
-			ExitGracefully();
 		}
 	}
 }
@@ -105,8 +81,14 @@ int Client::BuildConn(ConnType connType) {
 		log->Error("Cannot create socket.");		
 	}
 
+
+	/**
+	 * TODO() HANGS IF SERVER NOT ACTIVE **********************
+	 */
+
 	//Connect to server
 	if (connect(peers[nConns].fd, (const struct sockaddr *) &serverAddr, sizeof(serverAddr)) != 0) {
+		std::cout << " got here " << std::endl;
 		log->Error("Cannot connect to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
 		ExitGracefully();
 	}
@@ -293,6 +275,14 @@ void Client::StartCommand(CommandData* commandData) {
 			Pause(atoi(commandData->getArgs()[0]));
 			return;
 		case REGISTER:
+			break;
+		case SEND:
+		case SEND_ANON:
+			if (loggedInUser == NULL) {
+				std::cout << "You cannot send a message until you are logged in!" << std::endl;
+				return;
+			}
+			commandData->setUsername(loggedInUser);
 			break;
 		default:
 			if (loggedInUser == NULL) {

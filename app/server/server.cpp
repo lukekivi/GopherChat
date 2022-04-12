@@ -1,5 +1,9 @@
 #include "server.hpp"
 #include <algorithm>
+#include <vector>
+#include <string>
+
+const char* ONBOARDING_MESSAGE = "UI connection established";
 
 Server::Server(Log* log) { 
 	this->log = new Log(log);
@@ -59,6 +63,9 @@ void Server::StartServer(int port) {
 	
 	int connID = 0;
 	while (1) {	//the main loop		
+
+		CheckMessageDeques();
+
 		//monitor the listening sock and data socks, nConn+1 in total
 		r = poll(peers, nConns + 1, -1);	
 		if (r < 0) {
@@ -130,10 +137,12 @@ void Server::SendMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// Reset sStat
-			if (!IsFileConn(i) && !IsUiConn(i)) {
-				RemoveConnection(i);				  // Remove transient conn
-			} else {
+			if (IsFileConn(i) || IsUiConn(i)) {
 				sockMsgr->RefreshSendStat(&sStat[i]); // UI/FILE conn needs to be refreshed
+				connData[i].Deactivate();
+			} else {
+				RemoveConnection(i);				  // Remove transient conn
+
 			}
 			break;
 		case BLOCKED:
@@ -210,10 +219,12 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleLogout(i, commandData);
 			break;
 		case SEND:
-			break;
-		case SEND_TO:
+			HandleSend(i, commandData);
 			break;
 		case SEND_ANON:
+			HandleSendAnon(i, commandData);
+			break;
+		case SEND_TO:
 			break;
 		case SEND_TO_ANON:
 			break;
@@ -227,10 +238,9 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			break;
 		case UI_CONN:
 			SetUiConn(i, commandData);
-			SendMessageToUi(commandData->getUsername(), "here is a ui message");
+			// SendMessageToUi(commandData->getUsername(), "here is a ui message");
 			break;
 		case FILE_CONN:
-
 			break;
 		default:
 			log->Error("Invalid COMMAND: %d", commandData->getCommand());
@@ -251,19 +261,18 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 	switch(status) {
 		case OK:
 			msg = "Registration succeeded.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		case FAILURE:
 			msg = "Registration failed.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
 			break;
 	}	
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
@@ -281,28 +290,23 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 	switch(status) {
 		case OK:
 			msg = "Already logged in somewhere else.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		case FAILURE:
 			msg = "This user doesn't exist--cannot log in.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		case LOGGED_IN:
 			msg = "Successfully logged in.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		case LOGGED_OUT:
 			msg = "Incorrect password.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
 	}	
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
 
 	log->Info("Log in: %s\n\t- %s", username, message);
 
@@ -323,18 +327,18 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 		case OK:
 			// should never happen
 			msg = "This user is not logged in. This shouldn't be possible.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		case LOGGED_OUT:
 			msg = "Successfully logged out.";
-			message = new char[strlen(msg) + 1];
-			strcpy(message, msg);
 			break;
 		default:
 			log->Error("Invalid STATUS.");
 			exit(EXIT_FAILURE);
 	}	
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
 	log->Info("Log out: %s\n\t- %s", username, message);
 
 	SendResponse(i, new ResponseData(status, message, username));
@@ -406,6 +410,12 @@ void Server::SetConn(int fd) {
 void Server::SetUiConn(int i, CommandData* commandData) {
 	connData[i].SetUsername(commandData->getUsername());
 	connData[i].SetConnType(UI);
+
+	const BYTE* body = sockMsgr->CharToByte(ONBOARDING_MESSAGE);
+	const char* username = commandData->getUsername();
+
+	ds.Enqueue(username, body, strlen(ONBOARDING_MESSAGE));
+	delete[] body;
 }
 
 int Server::GetUiConn(const char* username) {
@@ -415,4 +425,83 @@ int Server::GetUiConn(const char* username) {
 		}
 	}
 	return -1;
+}
+
+
+void Server::HandleSend(int i, CommandData* commandData) {
+	char* username = new char[strlen(commandData->getUsername())+1];
+	strcpy(username, commandData->getUsername());
+
+	log->Info("%s: sending public message.", username);
+
+	char* message;
+	const char* msg;
+	Status status;
+
+	if (ds.IsLoggedIn(username)) {
+		StartMessageToAllUsers(username, commandData);  // distribute message
+		msg = "Successfully sent public message.";
+		status = OK;
+	} else {
+		msg = "Not logged in. Failed to send public message.";
+		status = FAILURE;
+	}
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
+	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
+}
+
+
+void Server::HandleSendAnon(int i, CommandData* commandData) {
+	char* username = new char[strlen(commandData->getUsername())+1];
+	strcpy(username, commandData->getUsername());
+	commandData->setUsername(NULL);
+	log->Info("%s: sending anonymous public message.", username);
+
+	char* message;
+	const char* msg;
+	Status status;
+
+	if (ds.IsLoggedIn(username)) {
+		StartMessageToAllUsers(username, commandData);   // distribute message
+		msg = "Successfully sent anonymous public message.";
+		status = OK;
+	} else {
+		msg = "Not logged in. Failed to send anonymous public message.";
+		status = FAILURE;
+	}
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
+	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
+}
+
+
+void Server::StartMessageToAllUsers(char* username, CommandData* commandData) {
+	int len = 0;
+	const BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
+
+	ds.EnqueueAllExcept(username, body, len);
+
+	delete[] body;
+}
+
+
+void Server::CheckMessageDeques() {
+	for (int i = 0; i <= nConns; i++) {
+		if (IsUiConn(i) && !connData[i].IsActive()) {
+			ByteBody* body = ds.Dequeue(connData[i].GetUsername());
+
+			if (body != NULL) {
+				sockMsgr->InitSendStat(&sStat[i]);
+				sockMsgr->BuildSendMsg(&sStat[i], body->GetBody(), body->GetLen());
+				connData[i].Activate();
+				SendMessage(i);
+				delete body;
+			}
+		}
+	}
 }

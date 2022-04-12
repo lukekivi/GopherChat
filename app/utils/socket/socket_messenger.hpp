@@ -29,7 +29,7 @@ class SocketMessenger {
     BYTE* ResponseDataToByte(ResponseData* response, int* len);
     ResponseData* ByteToResponseData(BYTE* body);
 
-    char* ByteToChar(BYTE* body, int len);
+    char* ByteToChar(const BYTE* body, int len);
     
   private:
     NbStatus RecvNB(struct MsgStat* mStat, int sockfd);

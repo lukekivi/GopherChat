@@ -33,7 +33,20 @@ class ConnData {
         return conn;
     }
 
+    bool IsActive() {
+        return isActive;
+    }
+
+    void Activate() {
+        isActive = true;
+    }
+
+    void Deactivate() {
+        isActive = false;
+    }
+
  private: 
+    bool isActive = false;
     ConnType conn;
     char username[MAX_USRNAME_SIZE+1];
 };

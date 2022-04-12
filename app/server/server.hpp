@@ -21,6 +21,7 @@
 #include "../utils/utils.hpp"
 #include "../data/response_data.hpp"
 #include "../data/conn_data.hpp"
+#include "../data/byte_body.hpp"
 
 #define MAX_REQUEST_SIZE 10000000
 #define MAX_CONCURRENCY_LIMIT 64
@@ -49,6 +50,10 @@ class Server {
     void SetConn(int fd);
     void SetUiConn(int i, CommandData* commandData);
     int GetUiConn(const char* username);
+    void HandleSend(int i, CommandData* commandData);
+    void HandleSendAnon(int i, CommandData* commandData);
+    void StartMessageToAllUsers(char* username, CommandData* commandData);
+    void CheckMessageDeques();
 
     void ExitGracefully();
 
@@ -61,7 +66,6 @@ class Server {
     struct SendStat sStat[MAX_CONCURRENCY_LIMIT+1]; // send stats
     struct RecvStat rStat[MAX_CONCURRENCY_LIMIT+1]; // recv stats
     ConnData connData[MAX_CONCURRENCY_LIMIT+1];      // data structure that identifes the conns
-
 };
 
 #endif

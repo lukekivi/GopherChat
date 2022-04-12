@@ -5,24 +5,24 @@
 #include "../utils/utils.hpp"
 #include <iostream>
 #include <cstring>
+#include "../data/byte_body.hpp"
 
 class Profile {
   public:
     Profile(const char* username_) {
-      username = new char[strlen(username_)+1];
       strcpy(username, username_);
-    }
-
-    ~Profile() {
-      delete[] username;
     }
 
     const char* GetUsername() {
       return username;
     }
 
-    BYTE* dequeueMsg() {
-      BYTE* results = NULL;
+    bool HasMessages() {
+      return !messages.empty();
+    }
+
+    ByteBody* DequeueBody() {
+      ByteBody* results = NULL;
       if (messages.size() > 0) {
         results = messages.front();
         messages.pop_front();
@@ -30,13 +30,13 @@ class Profile {
       return results;
     }
 
-    void EnqueueMsg(BYTE* msg) {
-      messages.push_back(msg);
+    void EnqueueBody(ByteBody* body) {
+      messages.push_back(body);
     }
 
   private:
-    char* username;
-    std::deque<BYTE*> messages;
+    char username[MAX_USRNAME_SIZE];
+    std::deque<ByteBody*> messages;
 };
 
 #endif
