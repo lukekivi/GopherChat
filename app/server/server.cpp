@@ -486,6 +486,7 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData) {
 
 	const char * message = sockMsgr->ByteToChar(body, len);
 	log->Info("Starting message for all from %s", username);
+	log->Info("Command: %s", commandData->getArgs()[0]);
 	log->Info("Body: %s", message);
 	log->Info("Body size: %d", len);
 
