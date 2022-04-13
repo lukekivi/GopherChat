@@ -591,7 +591,7 @@ void Server::HandleSendToAnon(int i, CommandData* commandData) {
 
 void Server::StartMessageToUser(char* username, CommandData* commandData, bool isAnon) {
 	char* msg = new char[strlen(commandData->getArgs()[1]) + 1];
-	strcpy(msg, commandData->getArgs()[0]);
+	strcpy(msg, commandData->getArgs()[1]);
 
 	char* usr = new char[strlen(commandData->getUsername()) + 1];
 	strcpy(usr, commandData->getUsername());
