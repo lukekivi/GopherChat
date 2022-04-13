@@ -596,6 +596,11 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 	char* usr = new char[strlen(commandData->getUsername()) + 1];
 	strcpy(usr, commandData->getUsername());
 
+	std::cout << "Message: " << msg << std::endl;
+	std::cout << "Sender: " << username << std::endl;
+	std::cout << "Receiver: " << commandData->getArgs()[0] << std::endl;
+	std::cout << "Receiver view of sender: " << usr << std::endl;
+
 	const char* message;
 	if (isAnon) {
 		message = "Sending Anonymous Message";
@@ -609,7 +614,7 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 
 	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
 
-	ds.Enqueue(usr, byteBody);
+	ds.Enqueue(commandData->getArgs()[0], byteBody);
 
 	delete msgData;
 	delete byteBody;
