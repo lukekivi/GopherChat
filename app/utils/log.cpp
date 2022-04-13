@@ -54,17 +54,18 @@ void Log::Out(
     const int size
 ) {
     std::cout << description << std::endl;
-    std::cout << "\n\t-   time: " << std::time(0) << std::endl;
-    std::cout << "\n\t-   user: " << user << std::endl;
+    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   user: " << user << std::endl;
     if (recipient != NULL) {
-        std::cout << "\n\t-  recip: " << recipient << std::endl;
+        std::cout << "\t-  recip: " << recipient << std::endl;
     }
     if (msg != NULL) {
-        std::cout << "\n\t-    msg: " << msg << std::endl;
+        std::cout << "\t-    msg: " << msg << std::endl;
     }
     if (size != -1) {
-        std::cout << "\n\t-   size: " << size << std::endl;
+        std::cout << "\t-   size: " << size << std::endl;
     }
+    std::cout << std::endl;
 }
 
 
