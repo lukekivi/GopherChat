@@ -171,6 +171,7 @@ void Server::SetNonBlockIO(int fd) {
  * remove a connection and cleanup its data
  */
 void Server::RemoveConnection(int i) {
+	const char* FAILURE_MSG = "Logged out a user because their file or UI connection failed.";
 	close(peers[i].fd);	
 	delete[] rStat[i].sizeStat.msg;
 	delete[] rStat[i].bodyStat.msg;
@@ -186,7 +187,8 @@ void Server::RemoveConnection(int i) {
 
 	if ((IsUiConn(i) || IsFileConn(i)) && ds.IsLoggedIn(connData[i].GetUsername())) {
 		ds.Logout(connData[i].GetUsername());
-		log->Info("Logged out a user because their file or UI connection failed.");
+		log->Out("Log Out", connData[i].GetUsername(), NULL, FAILURE_MSG);
+		log->Info("%s", FAILURE_MSG);
 	} 
 
 	if (i < nConns) {	
