@@ -217,8 +217,10 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleSendAnon(i, commandData);
 			break;
 		case SEND_TO:
+			HandleSendTo(i, commandData);
 			break;
 		case SEND_TO_ANON:
+			HandleSendToAnon(i, commandData);
 			break;
 		case SEND_FILE:
 			break;
