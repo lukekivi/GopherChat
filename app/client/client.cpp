@@ -252,6 +252,8 @@ void Client::StartCommand(CommandData* commandData) {
 			break;
 		case SEND:
 		case SEND_ANON:
+		case SEND_TO:
+		case SEND_TO_ANON:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot send a message until you are logged in!" << std::endl;
 				return;
