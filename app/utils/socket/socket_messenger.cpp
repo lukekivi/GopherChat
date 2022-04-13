@@ -325,16 +325,18 @@ CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
 	char* username = ReadUsername(body);
 	int numArgs = 0;
 	switch(command) {
+		case SEND_FILE_TO:
+			numArgs = 3;
+			break;
 		case REGISTER:
 		case LOGIN:
 		case SEND_TO:
 		case SEND_TO_ANON:
-		case SEND_FILE_TO:
+		case SEND_FILE:
 			numArgs = 2;
 			break;
 		case SEND:
 		case SEND_ANON:
-		case SEND_FILE:
 		case DELAY:
 			numArgs = 1;
 			break;

@@ -2,7 +2,8 @@
 #-- App:                      #
 #   * make run_server         #
 #   * make run_client         #
-#-- Tests:                    #
+#-- Tests:              	  #
+# - test system components    #
 #   * make run_all_tests      # 
 ###############################
 
@@ -81,10 +82,10 @@ tests:
 	mkdir -p tests/objects/utils/userInput
 	mkdir -p tests/objects/server
 	
-run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests run_response_conversion_tests run_response_conversion_tests run_conn_data_tests
+run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_conversion_tests run_response_conversion_tests run_response_conversion_tests run_conn_data_tests run_file_tests
 
 ## LOG TESTS
-run_log_tests: log_tests 
+run_log_tests: log_tests
 	./tests/utils/log_tests
 
 log_tests: log_main.o log.o tests log
@@ -158,6 +159,17 @@ conn_data_tests: conn_data_main.o tests
 conn_data_main.o: testfiles/data/conn_data_main.cpp tests
 	g++ -c testfiles/data/conn_data_main.cpp -o tests/objects/data/conn_data_main.o
 
+
+
+## FILE TRANSPORTER TESTS
+run_file_tests: file_tests tests
+	valgrind ./tests/utils/file_tests
+
+file_tests: file_main.o tests
+	g++ tests/objects/utils/file_main.o -o tests/utils/file_tests
+
+file_main.o: testfiles/utils/file_main.cpp tests
+	g++ -c testfiles/utils/file_main.cpp -o tests/objects/utils/file_main.o
 
 
 ## MSG CONVERSTION TESTS

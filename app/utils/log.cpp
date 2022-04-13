@@ -50,8 +50,7 @@ void Log::Out(
     const char* description,
     const char* user,
     const char* recipient, 
-    const char* msg, 
-    const int size
+    const char* msg
 ) {
     std::cout << description << std::endl;
     std::cout << "\t-   time: " << std::time(0) << std::endl;
@@ -62,9 +61,6 @@ void Log::Out(
     if (msg != NULL) {
         std::cout << "\t-    msg: " << msg << std::endl;
     }
-    if (size != -1) {
-        std::cout << "\t-   size: " << size << std::endl;
-    }
     std::cout << std::endl;
 }
 
@@ -73,8 +69,7 @@ void Log::Out(
     const char* description,
     const char* user,
     std::vector<std::string> recipients, 
-    const char* msg, 
-    const int size
+    const char* msg
 ) {
     std::cout << description << std::endl;
     std::cout << "\t-   time: " << std::time(0) << std::endl;
@@ -93,10 +88,52 @@ void Log::Out(
     if (msg != NULL) {
         std::cout << "\t-    msg: " << msg << std::endl;
     }
-    if (size != -1) {
-        std::cout << "\t-   size: " << size << std::endl;
-    }
     std::cout << std::endl;
+}
+
+
+void Log::Out(
+    const char* description, 
+    const char* user, 
+    const char* recipient, 
+    const char* fileName, 
+    const char* msg, 
+    int size
+) {
+    std::cout << description << std::endl;
+    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   user: " << user << std::endl;
+    std::cout << "\t-  recip: " << recipient << std::endl;
+    std::cout << "\t-   file: " << fileName << std::endl;
+    std::cout << "\t-    msg: " << msg << std::endl;
+    std::cout << "\t-   size:" << size << std::endl;
+}
+
+
+void Log::Out(
+    const char* description, 
+    const char* user, 
+    std::vector<std::string> recipients, 
+    const char* fileName, 
+    const char* msg, 
+    int size
+) {
+    std::cout << description << std::endl;
+    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   user: " << user << std::endl;
+    std::cout << "\t- recips: ";
+    for (int i = 0; i < recipients.size(); i++) {
+        if (strcmp(recipients.at(i).c_str(), user) == 0) {
+            continue;
+        }
+        std::cout << recipients.at(i);
+        if (i != recipients.size() - 1) {
+            std::cout << ", ";
+        } 
+    }
+    std::cout << "\t-   file: " << fileName << std::endl;
+    std::cout << "\t-    msg: " << msg << std::endl;
+    std::cout << "\t-   size:" << size << std::endl;
 }
 
 

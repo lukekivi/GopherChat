@@ -48,16 +48,25 @@ class Server {
     bool IsUiConn(int i);
     bool IsFileConn(int i);
     void SendMessageToUi(const char* username, const char* message);
+
     void SetConn(int fd);
     void SetUiConn(int i, CommandData* commandData);
     int GetUiConn(const char* username);
+    void SetFileConn(int i, CommandData* commandData);
+    int GetFileConn(const char* username);
+
     void HandleSend(int i, CommandData* commandData);
     void HandleSendAnon(int i, CommandData* commandData);
     void HandleSendTo(int i, CommandData* commandData);
     void HandleSendToAnon(int i, CommandData* commandData);
     void StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon);
-    void CheckMessageDeques();
     void StartMessageToUser(char* username, CommandData* commandData, bool isAnon);
+    void CheckMessageDeques();
+    void StartFileToAllUsers(CommandData* commandData);
+    void SendFileToUser(char* sender, char* recipient, char* fileContents, char* fileName);
+
+    void HandleSendFile(int i, CommandData* commandData);
+    void HandleSendFileTo(int i, CommandData* commandData);
 
     void ExitGracefully();
 

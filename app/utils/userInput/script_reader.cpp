@@ -263,8 +263,9 @@ CommandData* ScriptReader::readSendFile(std::istringstream& iss) {
 
     strcpy(fileName, _fileName.c_str());
 
-    char** args = new char*[1];
+    char** args = new char*[2];
     args[0] = fileName;
+    args[1] = NULL;
 
     return new CommandData(SEND_FILE, args, 1);
 }
@@ -302,9 +303,10 @@ CommandData* ScriptReader::readSendFileTo(std::istringstream& iss) {
     strcpy(username, _username.c_str());
     strcpy(fileName, _fileName.c_str());
 
-    char** args = new char*[2];
+    char** args = new char*[3];
     args[0] = username;
     args[1] = fileName;
+    args[2] = NULL;
 
     return new CommandData(SEND_FILE_TO, args, 2);
 }

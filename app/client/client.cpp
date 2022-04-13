@@ -233,6 +233,7 @@ void Client::PrintResponse(ResponseData* responseData) {
 
 
 void Client::StartCommand(CommandData* commandData) {
+	char* fileContents;
 	switch(commandData->getCommand()) {
 		case LOGIN:
 			if (StartLogin() == 1) {
@@ -259,6 +260,22 @@ void Client::StartCommand(CommandData* commandData) {
 				return;
 			}
 			commandData->setUsername(loggedInUser);
+			break;
+		case SEND_FILE:
+			fileContents = fileTrans.fileToChar(commandData->getArgs()[0]);
+			if (fileContents == NULL) {
+				log->Error("Failed to read from file: %s", commandData->getArgs()[0]);
+				return;
+			}
+			commandData->SetFileContents(fileContents);
+			break;
+		case SEND_FILE_TO:
+			fileConents = fileTrans.fileToChar(commandData->getArgs()[1]);
+			if (fileCotents == NULL) {
+				log->Error("Failed to read from file: %s", commandData->getArgs()[1]));
+				return;
+			}
+			commandData->SetFileContents(fileContents);
 			break;
 		default:
 			if (loggedInUser == NULL) {
@@ -322,17 +339,26 @@ void Client::ExitGracefully() {
 void Client::SetupSession() {
 	// setup UI connection
 	int i = BuildConn(UI);
-	CommandData* uiCommandData = BuildUiCommand();
+	CommandData* uiCommandData = BuildSetupCommand(UI_CONN);
 	PrepareMessage(uiCommandData, i);
-
-	delete uiCommandData;  // generalize deletion after BYTE CONVERSION
+	delete uiCommandData;
 	log->Info("Started UI connection.");
 	SendMessage(i);
+
+	// setup FILE connections
+	CommandData* fileCommandData = BuildSetupCommand(FILE_CONN);
+	for (int i = 0; i < FILE_CONNS; i++) {
+		int i = BuildConn(FIL);
+		PrepareMessage(uiCommandData, i);
+		log->Info("Started FILE connection.");
+		SendMessage(i);
+	}
+	delete fileCommandData;
 }
 
 
-CommandData* Client::BuildUiCommand() {
-	CommandData* commandData = new CommandData(UI_CONN, NULL, 0);
+CommandData* Client::BuildSetupCommand(Command command) {
+	CommandData* commandData = new CommandData(command, NULL, 0);
 	char* username = new char[strlen(loggedInUser)+1];
 	strcpy(username, loggedInUser);
 	commandData->setUsername(username);

@@ -225,8 +225,10 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleSendToAnon(i, commandData);
 			break;
 		case SEND_FILE:
+			HandleSendFile(i, commandData);
 			break;
 		case SEND_FILE_TO:
+			HandleSendFileTo(i, commandData);
 			break;
 		case LIST:
 			break;
@@ -234,9 +236,9 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			break;
 		case UI_CONN:
 			SetUiConn(i, commandData);
-			// SendMessageToUi(commandData->getUsername(), "here is a ui message");
 			break;
 		case FILE_CONN:
+			SetFileConn(i, commandData);
 			break;
 		default:
 			log->Error("Invalid COMMAND: %d", commandData->getCommand());
@@ -596,11 +598,6 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 	char* usr = new char[strlen(commandData->getUsername()) + 1];
 	strcpy(usr, commandData->getUsername());
 
-	std::cout << "Message: " << msg << std::endl;
-	std::cout << "Sender: " << username << std::endl;
-	std::cout << "Receiver: " << commandData->getArgs()[0] << std::endl;
-	std::cout << "Receiver view of sender: " << usr << std::endl;
-
 	const char* message;
 	if (isAnon) {
 		message = "Sending Anonymous Message";
@@ -609,6 +606,83 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 	}
 
 	log->Out(message, username, commandData->getArgs()[0], commandData->getArgs()[1]);
+
+	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
+
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+
+	ds.Enqueue(commandData->getArgs()[0], byteBody);
+
+	delete msgData;
+	delete byteBody;
+}
+
+
+void Server::SetFileConn(int i, CommandData* commandData) {
+	connData[i].SetUsername(commandData->getUsername());
+	connData[i].SetConnType(FIL);
+}
+    
+
+int Server::GetFileConn(const char* username) {
+	for (int i = 1; i <= nConns; i++) {
+		if (strcmp(connData[i].GetUsername(), username) == 0 && !connData[i].IsActive) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+void Server::HandleSendFile(int i, CommandData* commandData) {
+	char* message;
+	const char* msg;
+	Status status;
+
+	if (ds.IsLoggedIn(username)) {
+		StartFileToAllUsers(commandData);
+		msg = "Successfully sent public file.";
+		status = OK;
+	} else {
+		msg = "Not logged in. Failed to public file.";
+		status = FAILURE;
+	}
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
+	SendResponse(i, new ResponseData(status, message, commandData->getUsername())); // respond to sender
+}
+
+
+void Server::HandleSendFileTo(int i, CommandData* commandData) {
+	return NULL;
+}
+
+
+void Server::StartFileToAllUsers(CommandData* commandData) {
+	std::vector<std::string> usernames = ds.GetSignedInUsers();
+
+	for (std::string username : usernames) {
+		int index = GetFileConn(username.c_str());
+
+		if (index == -1) {
+			log->Error("Was unable to find an available file connection for: %s", username);
+		} else {
+			
+		}
+	}
+}
+
+
+void Server::SendFileToUser(char* username, user) {
+	char* msg = new char[strlen(commandData->getArgs()[1]) + 1];
+	strcpy(msg, commandData->getArgs()[1]);
+
+	char* usr = new char[strlen(commandData->getUsername()) + 1];
+	strcpy(usr, commandData->getUsername());
+
+	log->Out("Sending file.", username, commandData->getArgs()[0], commandData->getArgs()[1]);
 
 	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
 

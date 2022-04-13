@@ -50,6 +50,10 @@ class CommandData {
         username = username_;
     }
 
+    void setFileContents(char* fileContents) {
+        args[numArgs-1] = fileContents;
+    }
+
   private:
     Command command;
     char** args;

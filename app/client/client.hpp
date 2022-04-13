@@ -16,9 +16,11 @@
 #include <signal.h>
 #include <fcntl.h>
 #include "../data/msg_data.hpp"
+#include "../utils/file_transporter.hpp"
 
 #define MAX_CONNS 50
-#define RES_CONNS 1
+#define UI_CONNS 1
+#define FILE_CONNS 10
 
 class Client {
 
@@ -47,7 +49,7 @@ class Client {
         int StartLogout();
 
         void SetupSession();
-        CommandData* BuildUiCommand();
+        CommandData* BuildSetupCommand();
         void PrepareMessage(CommandData* commandData, int i);
         void DisconnectFromServer();
         void Pause(int secs);
@@ -70,6 +72,7 @@ class Client {
 
         Log* log;
         SocketMessenger* sockMsgr;
+        FileTransporter fileTrans;
 
         char* loggedInUser = NULL;
 };
