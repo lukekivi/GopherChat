@@ -81,6 +81,10 @@ void Log::Out(
     std::cout << "\t-   user: " << user << std::endl;
     std::cout << "\t- recips: ";
     for (int i = 0; i < recipients.size(); i++) {
+        if (strcmp(recipients.at(i).c_str(), user) == 0) {
+            continue;
+        }
+
         std::cout << recipients.at(i);
         if (i == recipients.size() - 1) {
             std::cout << std::endl;
