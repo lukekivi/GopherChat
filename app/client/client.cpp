@@ -204,6 +204,8 @@ void Client::HandleResponse(int i) {
 		RemoveConnection(i);
 	}
 
+	PrintResponse(responseData);
+
 	delete responseData;
 }
 

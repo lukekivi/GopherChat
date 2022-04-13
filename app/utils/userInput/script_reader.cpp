@@ -1,6 +1,8 @@
 #include "script_reader.hpp"
 #include <string>
 #include <sstream>
+#define MIN_N 1
+#define MAX_N 9999
 
 /**
  * Get list of commands for from file.
@@ -328,6 +330,11 @@ CommandData* ScriptReader::readDelay(std::istringstream& iss) {
 
     if (!(iss >> _num)) {
         log->Error("%s - expected an integer to delay length", FUN_ID);
+        exit(EXIT_FAILURE);
+    }
+
+    if (_num < MIN_N || _num > MAX_N) {
+        log->Error("%s - expected delay between %d and %d", FUN_ID, MIN_N-1, MAX_N+1);
         exit(EXIT_FAILURE);
     }
 

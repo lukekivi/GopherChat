@@ -53,8 +53,11 @@ class Server {
     int GetUiConn(const char* username);
     void HandleSend(int i, CommandData* commandData);
     void HandleSendAnon(int i, CommandData* commandData);
+    void HandleSendTo(int i, CommandData* commandData);
+    void HandleSendToAnon(int i, CommandData* commandData);
     void StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon);
     void CheckMessageDeques();
+    void StartMessageToUser(char* username, CommandData* commandData, bool isAnon);
 
     void ExitGracefully();
 

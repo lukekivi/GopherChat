@@ -450,7 +450,6 @@ void Server::HandleSend(int i, CommandData* commandData) {
 	strcpy(message, msg);
 
 	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
-
 }
 
 
@@ -528,4 +527,86 @@ void Server::CheckMessageDeques() {
 			}
 		}
 	}
+}
+
+
+
+void Server::HandleSendTo(int i, CommandData* commandData) {
+	char* username = new char[strlen(commandData->getUsername())+1];
+	strcpy(username, commandData->getUsername());
+
+	char* message;
+	const char* msg;
+	Status status;
+
+	if (ds.IsLoggedIn(username)) {
+		StartMessageToUser(username, commandData, false);  // send message
+		msg = "Successfully sent message.";
+		status = OK;
+	} else {
+		msg = "Not logged in. Failed to send public message.";
+		status = FAILURE;
+	}
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
+	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
+}
+
+
+
+void Server::HandleSendToAnon(int i, CommandData* commandData) {
+	char* username = new char[strlen(commandData->getUsername())+1];
+	strcpy(username, commandData->getUsername());
+
+	char* visibleUsername = new char[strlen(ANON_USERNAME) + 1];
+	strcpy(visibleUsername, ANON_USERNAME); 
+
+	commandData->setUsername(visibleUsername);
+
+	char* message;
+	const char* msg;
+	Status status;
+
+	if (ds.IsLoggedIn(username)) {
+		StartMessageToUser(username, commandData, true);   // distribute message
+		msg = "Successfully sent anonymous public message.";
+		status = OK;
+	} else {
+		msg = "Not logged in. Failed to send anonymous public message.";
+		status = FAILURE;
+	}
+
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
+
+	SendResponse(i, new ResponseData(status, message, username)); // respond to sender
+}
+
+
+void Server::StartMessageToUser(char* username, CommandData* commandData, bool isAnon) {
+	char* msg = new char[strlen(commandData->getArgs()[0]) + 1];
+	strcpy(msg, commandData->getArgs()[0]);
+
+	char* usr = new char[strlen(commandData->getUsername()) + 1];
+	strcpy(usr, commandData->getUsername());
+
+	const char* message;
+	if (isAnon) {
+		message = "Sending Anonymous Message";
+	} else {
+		message = "Sending Message";
+	}
+
+	log->Out(message, username, commandData->getArgs()[0], commandData->getArgs()[1]);
+
+	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
+
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+
+	ds.Enqueue(username, byteBody);
+
+	delete msgData;
+	delete byteBody;
 }
