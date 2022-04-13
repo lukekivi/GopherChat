@@ -40,7 +40,7 @@ class Client {
         bool IsUiConn(int i);
         bool IsFileConn(int i);
         void PrintToUi(MsgData* msgData);
-        void PrintResponse(ResponseData* responseData);
+        void PrintResponse(ResponseData* responseData); 
 
         void StartCommand(CommandData* command);
         int StartLogin();

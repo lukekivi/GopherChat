@@ -19,6 +19,7 @@ class DataStore {
     void EnqueueAllExcept(const char* username, ByteBody* byteBody);
     ByteBody* Dequeue(const char* username);
     std::vector<std::string> GetUsersWithMsgs();
+    std::vector<std::string> GetSignedInUsers();
 
   private:
     int FindIndexOf(const char* username);

@@ -114,3 +114,13 @@ std::vector<std::string> DataStore::GetUsersWithMsgs() {
     }
     return usernames;
 }
+
+
+std::vector<std::string> DataStore::GetSignedInUsers() {
+    std::vector<std::string> usernames;
+    for (int i = 0; i < profiles.size(); i++) {
+        std::string username(profiles.at(i).GetUsername());
+        usernames.push_back(username);
+    }
+    return usernames;
+}

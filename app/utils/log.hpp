@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <fstream>
 #include <string.h>
+#include <vector>
+#include <string>
 
 class Log {
     
@@ -15,6 +17,8 @@ class Log {
 
         void Error(const char* format, ...);
         void Info(const char* format, ...);
+        void Out(const char* description, const char* user, const char* recipient = NULL, const char* msg = NULL, const int size = -1);
+        void Out(const char* description, const char* user, std::vector<std::string> recipients, const char* msg = NULL, const int size = -1);
         void SetLogFile(std::string path);
         Log* operator=(const Log& log);
 

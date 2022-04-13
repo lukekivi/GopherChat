@@ -89,10 +89,7 @@ int Client::BuildConn(ConnType connType) {
 
 	SetNonBlockIO(peers[nConns].fd);
 
-	log->Info("Connected to server %s:%d.", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
-
 	nConns++;
-
 	return nConns-1;
 }
 
@@ -150,17 +147,6 @@ void Client::SendMessage(int i) {
  * remove a connection and cleanup its data
  */
 void Client::RemoveConnection(int i) {
-	std::cout << "removing connection:" << i << std::endl;
-	std::cout << "\t- ";
-
-	if (connTypes[i] == REG) {
-		std::cout << "REG" << std::endl;
-	} else if (connTypes[i] == FIL) {
-		std::cout << "FIL" << std::endl;
-	} else {
-		std::cout << "UI" << std::endl;
-	}
-
 	close(peers[i].fd);	
 	delete[] rStats[i].sizeStat.msg;
 	delete[] rStats[i].bodyStat.msg;
@@ -188,10 +174,13 @@ void Client::HandleResponse(int i) {
 
 	switch(status) {
 		case OK:
+			log->Info("Response OK\n\t- user: %s\n\t- msg: ", responseData->getUsername(), responseData->getMsg());
 			break;
 		case FAILURE:
+		 	log->Info("Response FAILURE\n\t- user: %s\n\t- msg: ", responseData->getUsername(), responseData->getMsg());
 			break;
 		case LOGGED_IN:
+			log->Info("Confirmed that %s was logged in", responseData->getUsername());
 			unconfirmedLogin = false;	// login is confirmed
 			username = responseData->getUsername();
 			loggedInUser = new char[strlen(username)+1];
@@ -199,6 +188,7 @@ void Client::HandleResponse(int i) {
 			SetupSession();
 			break;
 		case LOGGED_OUT:
+			log->Info("Confirmed that %s was logged out", loggedInUser);
 			unconfirmedLogout = false; 	// logout is confirmed
 			delete[] loggedInUser;
 			loggedInUser = NULL;
@@ -214,7 +204,6 @@ void Client::HandleResponse(int i) {
 		RemoveConnection(i);
 	}
 
-	PrintResponse(responseData);
 	delete responseData;
 }
 
@@ -229,7 +218,7 @@ bool Client::IsFileConn(int i) {
 
 
 void Client::PrintToUi(MsgData* msgData) {
-	std::cout << "UI: " << msgData->GetUsername() << ": " << msgData->GetMsg() << std::endl;
+	std::cout << msgData->GetUsername() << ": " << msgData->GetMsg() << std::endl;
 }
 
 
@@ -242,8 +231,6 @@ void Client::PrintResponse(ResponseData* responseData) {
 
 
 void Client::StartCommand(CommandData* commandData) {
-	std::cout << "Starting Command: " << commandData->getCommand() << std::endl;
-
 	switch(commandData->getCommand()) {
 		case LOGIN:
 			if (StartLogin() == 1) {
@@ -294,6 +281,7 @@ int Client::StartLogin() {
 		std::cout << "Slow down, please. Still waiting to get a login confirmation."<< std::endl;
 		return 1;
 	} 
+	log->Info("Begin login attempt");
 	unconfirmedLogin = true;  // needs to be confirmed by server
 	return 0;
 }
@@ -308,6 +296,8 @@ int Client::StartLogout() {
 		}
 		return 1;
 	}
+	log->Info("Begin logout attempt");
+
 	unconfirmedLogout = true; // needs to be confirmed by server
 	return 0;
 }
@@ -332,7 +322,7 @@ void Client::SetupSession() {
 	PrepareMessage(uiCommandData, i);
 
 	delete uiCommandData;  // generalize deletion after BYTE CONVERSION
-	std::cout << "Starting UI conn: " << i << std::endl;
+	log->Info("Started UI connection.");
 	SendMessage(i);
 }
 
@@ -349,22 +339,29 @@ CommandData* Client::BuildUiCommand() {
 void Client::PrepareMessage(CommandData* commandData, int i) {
 	int len;
 	BYTE* body = sockMsgr->CommandDataToByte(commandData, &len);
-	sockMsgr->BuildSendMsg(&sStats[i], body, len);
+	ByteBody byteBody(body, len);
+	sockMsgr->BuildSendMsg(&sStats[i], &byteBody);
 }
 
 
 void Client::DisconnectFromServer() {
 	for (int i = 0; i < nConns; i++) {
-		if (IsFileConn(i) || IsUiConn(i)) {
-			std::cout << "Trying to disconnect from server" << std::endl;
+		if (IsFileConn(i)) {
 			RemoveConnection(i);
+			log->Info("Disconnected a File Connection");
+		} else if (IsUiConn(i)) {
+			RemoveConnection(i);
+			log->Info("Disconnected UI Connection");
 		}
 	}
+
+	log->Info("Disconnected from server");
 }
 
 
 void Client::Pause(int secs) {
-	std::cout << "Paused" << std::endl;
+	log->Info("Paused for %d", secs);
+	std::cout << "Paused for " << secs << "secs" << std::endl;
 	usleep(secs * 1000000);
 }
 
@@ -377,7 +374,7 @@ void Client::HandleMsg(int i) {
 	if (msgType == UI_MSG) {
 		PrintToUi(msgData);
 	} else if (msgType == FILE_MSG) {	// is FILE_MSG
-		std::cout << "Somehow got file msg?" << std::endl;
+
 	} else {
 		log->Error("Impossible MSG_TYPE, %d", msgType);
 		delete msgData;

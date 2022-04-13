@@ -118,11 +118,9 @@ void Server::RecvMessage(int i) {
 			delete commandData;
 			break;
 		case BLOCKED:
-			std::cout << "RecvMessage: BLOCKED" << std::endl;
 			// Just continue on
 			break;
 		case ERROR:
-			std::cout << "RecvMessage: ERROR - index " << i << std::endl;
 			// Remove connection
 			RemoveConnection(i);
 			break;
@@ -177,22 +175,19 @@ void Server::RemoveConnection(int i) {
 	delete[] rStat[i].sizeStat.msg;
 	delete[] rStat[i].bodyStat.msg;
 	delete[] sStat[i].msg;
+	
+	if (IsUiConn(i)) {
+		log->Info("Removed UI Connection for: %s", connData[i].GetUsername());
+	} else if (IsFileConn(i)) {
+		log->Info("Removed FIL Connection for: %s", connData[i].GetUsername());
+	} else{
+		log->Info("Removed REG Connection.");
+	}
 
 	if ((IsUiConn(i) || IsFileConn(i)) && ds.IsLoggedIn(connData[i].GetUsername())) {
 		ds.Logout(connData[i].GetUsername());
 		log->Info("Logged out a user because their file or UI connection failed.");
-		std::cout << "Logged out a user because their file or UI connection failed." << std::endl;
-	} else {
-		std::cout << "RemoveConnection: Didn't log anybody out" << std::endl;
-	}
-	
-	if (IsUiConn(i)) {
-		std::cout << "Removed UI Connection for: " << connData[i].GetUsername() << std::endl;
-	} else if (IsFileConn(i)) {
-		std::cout << "Removed FIL Connection for: " << connData[i].GetUsername() << std::endl;
-	} else{
-		std::cout << "Removed REG Connection" << std::endl;
-	}
+	} 
 
 	if (i < nConns) {	
 		memmove(peers + i, peers + i + 1, (nConns-i) * sizeof(struct pollfd));
@@ -205,11 +200,6 @@ void Server::RemoveConnection(int i) {
 
 
 void Server::HandleReceivedCommand(int i, CommandData* commandData) {
-	// std::cout << "Server.HandleReceivedCommand(): " << commandData->getCommand() << std::endl;
-	// for (int i = 0; i < commandData->getNumArgs(); i++) {
-	// 	std::cout << "\t-" << commandData->getArgs()[i] << std::endl;
-	// }
-
 	switch (commandData->getCommand()) {
 		case REGISTER:
 			HandleRegister(i, commandData);
@@ -273,6 +263,8 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 			break;
 	}	
 
+	log->Out("Register", username, NULL, msg);
+
 	message = new char[strlen(msg) + 1];
 	strcpy(message, msg);
 
@@ -284,8 +276,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
 	Status status = ds.Login(username, password);
-	log->Info("Logging in: %s", username);
-	std::cout << "Logging in: " << username << std::endl;
+
 	char* message;
 	const char* msg;
 
@@ -307,10 +298,11 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 			exit(EXIT_FAILURE);
 	}	
 
+	log->Out("Log In", username, NULL, msg);
+	log->Info("Log in: %s\n\t- %s", username, message);
+
 	message = new char[strlen(msg) + 1];
 	strcpy(message, msg);
-
-	log->Info("Log in: %s\n\t- %s", username, message);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
@@ -318,8 +310,6 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 
 void Server::HandleLogout(int i, CommandData* commandData) {
 	const char* username = commandData->getUsername();
-	log->Info("Logging out: %s", username);
-	std::cout << "Logging out: " << username << std::endl;
 
 	Status status = ds.Logout(username);
 	char* message;
@@ -342,6 +332,7 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 	strcpy(message, msg);
 
 	log->Info("Log out: %s\n\t- %s", username, message);
+	log->Out("Log Out", username, NULL, msg);
 
 	SendResponse(i, new ResponseData(status, message, username));
 }
@@ -355,7 +346,6 @@ void Server::SendResponse(int i, ResponseData* responseData) {
 
 	SendMessage(i);
 
-	log->Info("Sent an %d!", responseData->GetStatus());
 	delete responseData;
 }
 
@@ -443,14 +433,12 @@ void Server::HandleSend(int i, CommandData* commandData) {
 	char* username = new char[strlen(commandData->getUsername())+1];
 	strcpy(username, commandData->getUsername());
 
-	log->Info("%s: sending public message.", username);
-
 	char* message;
 	const char* msg;
 	Status status;
 
 	if (ds.IsLoggedIn(username)) {
-		StartMessageToAllUsers(username, commandData);  // distribute message
+		StartMessageToAllUsers(username, commandData, false);  // distribute message
 		msg = "Successfully sent public message.";
 		status = OK;
 	} else {
@@ -474,14 +462,13 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
 	strcpy(visibleUsername, ANON_USERNAME); 
 
 	commandData->setUsername(visibleUsername);
-	log->Info("%s: sending anonymous public message.", username);
 
 	char* message;
 	const char* msg;
 	Status status;
 
 	if (ds.IsLoggedIn(username)) {
-		StartMessageToAllUsers(username, commandData);   // distribute message
+		StartMessageToAllUsers(username, commandData, true);   // distribute message
 		msg = "Successfully sent anonymous public message.";
 		status = OK;
 	} else {
@@ -500,12 +487,21 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
  * @param username of the user who issued the command, is deleted elsewhere
  * @param commandData contains the username that will be visible to the client (as well as message data)
  */
-void Server::StartMessageToAllUsers(char* username, CommandData* commandData) {
+void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon) {
 	char* msg = new char[strlen(commandData->getArgs()[0]) + 1];
 	strcpy(msg, commandData->getArgs()[0]);
 
 	char* usr = new char[strlen(commandData->getUsername()) + 1];
 	strcpy(usr, commandData->getUsername());
+
+	const char* message;
+	if (isAnon) {
+		message = "Sending Anonymous Public Message";
+	} else {
+		message = "Sending Public Message";
+	}
+
+	log->Out(message, username, ds.GetSignedInUsers(), commandData->getArgs()[0]);
 
 	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
 
@@ -524,14 +520,6 @@ void Server::CheckMessageDeques() {
 			ByteBody* byteBody = ds.Dequeue(connData[i].GetUsername());
 
 			if (byteBody != NULL) {
-				MsgData* msgData = sockMsgr->ByteToMsgData(byteBody->GetBody());
-
-				log->Info("Dequeueing and sending message for %s", connData[i].GetUsername());
-				log->Info("From: %s", msgData->GetUsername());
-				log->Info("Body: %s", msgData->GetMsg());
-
-				delete msgData;
-
 				sockMsgr->InitSendStat(&sStat[i]);
 				sockMsgr->BuildSendMsg(&sStat[i], byteBody);
 				connData[i].Activate();
