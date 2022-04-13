@@ -84,14 +84,12 @@ void Log::Out(
         if (strcmp(recipients.at(i).c_str(), user) == 0) {
             continue;
         }
-
         std::cout << recipients.at(i);
-        if (i == recipients.size() - 1) {
-            std::cout << std::endl;
-        } else {
-            std::cout << ", " << std::endl;
-        }
+        if (i != recipients.size() - 1) {
+            std::cout << ", ";
+        } 
     }
+    std::cout << std::endl;
     if (msg != NULL) {
         std::cout << "\t-    msg: " << msg << std::endl;
     }
