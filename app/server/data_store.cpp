@@ -1,5 +1,4 @@
 #include "data_store.hpp"
-#include <iostream> 
 
 Status DataStore::Register(const char* username, const char* password) {
     std::string usr(username);
@@ -14,7 +13,6 @@ Status DataStore::Register(const char* username, const char* password) {
 
 
 Status DataStore::Login(const char* username, const char* password) {
-    std::cout << "DS: Logging in: " << username << std::endl;
     std::string usr(username);
 
     if (!IsInMap(usr)) {
@@ -36,7 +34,6 @@ Status DataStore::Login(const char* username, const char* password) {
 
 
 Status DataStore::Logout(const char* username) {
-    std::cout << "DS: Logging out: " << username << std::endl;
     int index = FindIndexOf(username);
     if (index != -1) {
         profiles.erase(profiles.begin() + index);

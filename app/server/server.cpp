@@ -299,7 +299,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 	}	
 
 	log->Out("Log In", username, NULL, msg);
-	log->Info("Log in: %s\n\t- %s", username, message);
+	log->Info("Log in: %s\n\t- %s", username, msg);
 
 	message = new char[strlen(msg) + 1];
 	strcpy(message, msg);

@@ -76,9 +76,9 @@ void Log::Out(
     const int size
 ) {
     std::cout << description << std::endl;
-    std::cout << "\n\t-   time: " << std::time(0) << std::endl;
-    std::cout << "\n\t-   user: " << user << std::endl;
-    std::cout << "\n\t- recips: ";
+    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   user: " << user << std::endl;
+    std::cout << "\t- recips: ";
     for (int i = 0; i < recipients.size(); i++) {
         std::cout << recipients.at(i);
         if (i == recipients.size() - 1) {
@@ -88,11 +88,12 @@ void Log::Out(
         }
     }
     if (msg != NULL) {
-        std::cout << "\n\t-    msg: " << msg << std::endl;
+        std::cout << "\t-    msg: " << msg << std::endl;
     }
     if (size != -1) {
-        std::cout << "\n\t-   size: " << size << std::endl;
+        std::cout << "\t-   size: " << size << std::endl;
     }
+    std::cout << std::endl;
 }
 
 
