@@ -1,4 +1,2 @@
 REGISTER evan 1234
 LOGIN evan 1234
-DELAY 2
-SENDF file.txt

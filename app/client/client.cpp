@@ -353,7 +353,7 @@ void Client::SetupSession() {
 	CommandData* fileCommandData = BuildSetupCommand(FILE_CONN);
 	for (int i = 0; i < FILE_CONNS; i++) {
 		index = BuildConn(FIL);
-		PrepareMessage(uiCommandData, index);
+		PrepareMessage(fileCommandData, index);
 		log->Info("Started FILE connection.");
 		SendMessage(index);
 	}
