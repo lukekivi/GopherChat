@@ -294,12 +294,6 @@ int Client::StartCommand(CommandData* commandData) {
 			}
 			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
-
-			std::cout << "sender" << commandData->getUsername() << std::endl;
-	std::cout << "numArgs" << commandData->getNumArgs() << std::endl;
-	std::cout << "recip" << commandData->getArgs()[0] << std::endl;
-	std::cout << "fileName" << commandData->getArgs()[1] << std::endl;
-		std::cout << "fileContents" << commandData->getArgs()[2] << std::endl;
 			break;
 		default:
 			if (loggedInUser == NULL) {
