@@ -643,7 +643,7 @@ void Server::SetFileConn(int i, CommandData* commandData) {
 
 int Server::GetFileConn(const char* username) {
 	for (int i = 1; i <= nConns; i++) {
-		if (strcmp(connData[i].GetUsername(), username) == 0 && !connData[i].IsActive()) {
+		if (strcmp(connData[i].GetUsername(), username) == 0 && connData[i].GetConnType == FILE_CONN && !connData[i].IsActive()) {
 			return i;
 		}
 	}

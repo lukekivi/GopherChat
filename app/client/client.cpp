@@ -420,7 +420,7 @@ void Client::HandleMsg(int i) {
 	if (msgType == UI_MSG) {
 		PrintToUi(msgData);
 	} else {
-		log->Error("MsgType did not match UI_MSG(50), %d", msgType);
+		log->Error("MsgType did not match UI_MSG(51), %d", msgType);
 		delete msgData;
 		ExitGracefully();
 	}
@@ -441,7 +441,7 @@ void Client::HandleFile(int i) {
 			std::cout << msgData->GetUsername() << ":sent you the file \"" << msgData->GetFileName() << "\". However, a file by the same name already existed so it failed to download." << std::endl;
 		}
 	} else {
-		log->Error("MsgType did not match FILE_MSG(51), %d", msgType);
+		log->Error("MsgType did not match FILE_MSG(50), %d", msgType);
 		delete msgData;
 		ExitGracefully();
 	}
