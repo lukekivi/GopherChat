@@ -266,6 +266,10 @@ void Client::StartCommand(CommandData* commandData) {
 			commandData->setUsername(loggedInUser);
 			break;
 		case SEND_FILE:
+			if (loggedInUser == NULL) {
+				std::cout << "You cannot send a file until you are logged in!" << std::endl;
+				return;
+			}
 			fileContents = fileTrans.fileToChar(commandData->getArgs()[0]);
 			if (fileContents == NULL) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[0]);
@@ -275,6 +279,10 @@ void Client::StartCommand(CommandData* commandData) {
 			commandData->setFileContents(fileContents);
 			break;
 		case SEND_FILE_TO:
+			if (loggedInUser == NULL) {
+				std::cout << "You cannot send a file until you are logged in!" << std::endl;
+				return;
+			}
 			fileContents = fileTrans.fileToChar(commandData->getArgs()[1]);
 			if (fileContents == NULL) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[1]);
@@ -411,9 +419,9 @@ void Client::HandleMsg(int i) {
 		PrintToUi(msgData);
 	} else if (msgType == FILE_MSG) {	// is FILE_MSG
 		if (fileTrans.charToFile(msgData->GetFileName(), msgData->GetMsg())) {
-			log->Out("%s: received file \"%s\"",msgData->GetUsername(), msgData->GetFileName());
+			std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\"" << std::endl;
 		} else {
-			log->Out("%s: received file \"%s\" but a file by the same name already existed so it failed.",msgData->GetUsername(), msgData->GetFileName());
+			std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\". However, a file by the same name already existed so it failed to download." << std::endl;
 		}
 	} else {
 		log->Error("Impossible MSG_TYPE, %d", msgType);

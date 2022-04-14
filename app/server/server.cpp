@@ -762,6 +762,8 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 	log->Out("Sending file.", sndr, recipients, fName, contentSummary, contentLen);
 
 	MsgData* msgData = new MsgData(FILE_MSG, sndr, msg, fName);
+	std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\"..." << std::endl;
+
 	ByteBody* byteBody = sockMsgr->MsgDataFileToByteBody(msgData);
 	if (byteBody == NULL) {
 		delete msgData;
