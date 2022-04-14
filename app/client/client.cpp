@@ -419,9 +419,9 @@ void Client::HandleMsg(int i) {
 		PrintToUi(msgData);
 	} else if (msgType == FILE_MSG) {	// is FILE_MSG
 		if (fileTrans.charToFile(msgData->GetFileName(), msgData->GetMsg())) {
-			std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\"" << std::endl;
+			std::cout << msgData->GetUsername() << ": sent you the file \"" << msgData->GetFileName() << "\"" << std::endl;
 		} else {
-			std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\". However, a file by the same name already existed so it failed to download." << std::endl;
+			std::cout << msgData->GetUsername() << ":sent you the file \"" << msgData->GetFileName() << "\". However, a file by the same name already existed so it failed to download." << std::endl;
 		}
 	} else {
 		log->Error("Impossible MSG_TYPE, %d", msgType);

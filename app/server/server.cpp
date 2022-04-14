@@ -226,7 +226,6 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleSendToAnon(i, commandData);
 			break;
 		case SEND_FILE:
-			std::cout << "sending file" << std::endl;
 			HandleSendFile(i, commandData);
 			break;
 		case SEND_FILE_TO:
@@ -762,7 +761,7 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 	log->Out("Sending file.", sndr, recipients, fName, contentSummary, contentLen);
 
 	MsgData* msgData = new MsgData(FILE_MSG, sndr, msg, fName);
-	std::cout << msgData->GetUsername() << ": received file \"" << msgData->GetFileName() << "\"..." << std::endl;
+	std::cout << sndr << ": received file \"" << fName << "\"..." << std::endl;
 
 	ByteBody* byteBody = sockMsgr->MsgDataFileToByteBody(msgData);
 	if (byteBody == NULL) {

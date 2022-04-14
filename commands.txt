@@ -1,4 +1,4 @@
-REGISTER lucas 1234
-LOGIN lucas 1234
+REGISTER steph 1234
+LOGIN steph 1234
 DELAY 1
 SENDF testFile.txt
