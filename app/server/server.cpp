@@ -770,7 +770,7 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 
 	
 	for (std::string recipient : recipients) {
-		if (stcmp(recipient,sndr) == 0) {
+		if (strcmp(recipient,sndr) == 0) {
 			continue;
 		}
 
