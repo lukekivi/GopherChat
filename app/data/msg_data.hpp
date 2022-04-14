@@ -5,15 +5,17 @@
 
 class MsgData {
   public:
-    MsgData(MsgType msgType_, const char* username_, const char* msg_) {
+    MsgData(MsgType msgType_, const char* username_, const char* msg_, const char* fileName_ = NULL) {
         msgType = msgType_;
         username = username_;
         msg = msg_;
+        fileName = fileName_;
     }
 
     ~MsgData() {
         delete[] username;
         delete[] msg;
+        delete[] fileName;  
     }
 
     const char* GetUsername() {
@@ -28,9 +30,14 @@ class MsgData {
         return msgType;
     }
 
+    const char* GetFileName() {
+        return fileName;
+    }
+
   private:
     const char* username;
     const char* msg;
+    const char* fileName;
     MsgType msgType;
 };
 

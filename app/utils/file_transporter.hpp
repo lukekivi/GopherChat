@@ -36,7 +36,7 @@ class FileTransporter {
         return body;
     }
 
-    bool charToFile(const char* filePath, char* contents) {
+    bool charToFile(const char* filePath, const char* contents) {
         if (DoesFileExist(filePath)) {
             return false;
         }

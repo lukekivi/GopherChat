@@ -296,6 +296,10 @@ int TestScriptRead() {
         numFailed++;
     }
 
+    for (int i = 0; i < commands.size(); i++) {
+        delete commands.at(i);
+    }
+
 
     return numFailed;
 }

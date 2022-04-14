@@ -49,7 +49,7 @@ class Client {
         int StartLogout();
 
         void SetupSession();
-        CommandData* BuildSetupCommand();
+        CommandData* BuildSetupCommand(Command command);
         void PrepareMessage(CommandData* commandData, int i);
         void DisconnectFromServer();
         void Pause(int secs);

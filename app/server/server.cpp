@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#define SUMMARY_LEN 100
 
 const char* ONBOARDING_MESSAGE = "UI connection established";
 const char* ANON_USERNAME = "Anon";
@@ -420,6 +421,12 @@ void Server::SetUiConn(int i, CommandData* commandData) {
 	MsgData* msgData = new MsgData(UI_MSG, fromUsername, body);
 
 	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
+
 	ds.Enqueue(username, byteBody);
 	delete msgData;
 	delete byteBody;
@@ -511,6 +518,11 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bo
 	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
 
 	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+	
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
 
 	ds.EnqueueAllExcept(username, byteBody);
 
@@ -611,6 +623,11 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 
 	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
 
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
+
 	ds.Enqueue(commandData->getArgs()[0], byteBody);
 
 	delete msgData;
@@ -626,7 +643,7 @@ void Server::SetFileConn(int i, CommandData* commandData) {
 
 int Server::GetFileConn(const char* username) {
 	for (int i = 1; i <= nConns; i++) {
-		if (strcmp(connData[i].GetUsername(), username) == 0 && !connData[i].IsActive) {
+		if (strcmp(connData[i].GetUsername(), username) == 0 && !connData[i].IsActive()) {
 			return i;
 		}
 	}
@@ -639,7 +656,7 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(username)) {
+	if (ds.IsLoggedIn(commandData->getUsername())) {
 		StartFileToAllUsers(commandData);
 		msg = "Successfully sent public file.";
 		status = OK;
@@ -656,40 +673,117 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 
 
 void Server::HandleSendFileTo(int i, CommandData* commandData) {
-	return NULL;
+	char* sender = commandData->getUsername();
+	char* sndr = new char[strlen(sender) + 1];
+	strcpy(sndr, sender);
+
+	char** args = commandData->getArgs();
+
+	char* recipient = args[0];
+
+	char* fileName = args[1];
+	char* fName = new char[strlen(fileName) + 1];
+	strcpy(fName, fileName);
+
+	char* fileContents = args[2];
+	char* msg = new char[strlen(fileContents) + 1];
+	strcpy(msg, fileContents);
+
+	char contentSummary[SUMMARY_LEN+4];
+	int contentLen = strlen(fileContents);
+	if (SUMMARY_LEN < contentLen) {
+		contentSummary[SUMMARY_LEN]   = '.';
+		contentSummary[SUMMARY_LEN+1] = '.';
+		contentSummary[SUMMARY_LEN+2] = '.';
+		contentSummary[SUMMARY_LEN+3] = '\0';
+		for (int i = 0; i < SUMMARY_LEN; i++) {
+			contentSummary[i] = fileContents[i];
+		}
+	} else {
+		strcpy(contentSummary, fileContents);
+	}
+
+	log->Out("Sending file.", sndr, recipient, fName, contentSummary, contentLen);
+
+	MsgData* msgData = new MsgData(FILE_MSG, sndr, msg, fName);
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
+
+	int index = GetFileConn(recipient);
+
+	if (index == -1) {
+		log->Error("HandleSendFileTo(): Was unable to find an available file connection for: %s", recipient);
+	} else {
+		sockMsgr->InitSendStat(&sStat[index]);
+		sockMsgr->BuildSendMsg(&sStat[index], byteBody);
+	}
+
+	delete msgData;
+	delete byteBody;
 }
 
 
 void Server::StartFileToAllUsers(CommandData* commandData) {
-	std::vector<std::string> usernames = ds.GetSignedInUsers();
+	std::vector<std::string> recipients = ds.GetSignedInUsers();
 
-	for (std::string username : usernames) {
-		int index = GetFileConn(username.c_str());
+	char* sender = commandData->getUsername();
+	char* sndr = new char[strlen(sender) + 1];
+	strcpy(sndr, sender);
+
+	char** args = commandData->getArgs();
+
+	char* fileName = args[0];
+	char* fName = new char[strlen(fileName) + 1];
+	strcpy(fName, fileName);
+
+	char* fileContents = args[1];
+	char* msg = new char[strlen(fileContents) + 1];
+	strcpy(msg, fileContents);
+
+	char contentSummary[SUMMARY_LEN+4];
+	int contentLen = strlen(fileContents);
+	if (SUMMARY_LEN < contentLen) {
+		contentSummary[SUMMARY_LEN]   = '.';
+		contentSummary[SUMMARY_LEN+1] = '.';
+		contentSummary[SUMMARY_LEN+2] = '.';
+		contentSummary[SUMMARY_LEN+3] = '\0';
+		for (int i = 0; i < SUMMARY_LEN; i++) {
+			contentSummary[i] = fileContents[i];
+		}
+	} else {
+		strcpy(contentSummary, fileContents);
+	}
+
+	log->Out("Sending file.", sndr, recipients, fName, contentSummary, contentLen);
+
+	MsgData* msgData = new MsgData(FILE_MSG, sndr, fileContents, fName);
+	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
+
+	
+	for (std::string recipient : recipients) {
+		int index = GetFileConn(recipient.c_str());
 
 		if (index == -1) {
-			log->Error("Was unable to find an available file connection for: %s", username);
+			log->Error("Was unable to find an available file connection for: %s", recipient);
 		} else {
-			
+			sockMsgr->InitSendStat(&sStat[index]);
+			sockMsgr->BuildSendMsg(&sStat[index], byteBody);	
 		}
 	}
-}
-
-
-void Server::SendFileToUser(char* username, user) {
-	char* msg = new char[strlen(commandData->getArgs()[1]) + 1];
-	strcpy(msg, commandData->getArgs()[1]);
-
-	char* usr = new char[strlen(commandData->getUsername()) + 1];
-	strcpy(usr, commandData->getUsername());
-
-	log->Out("Sending file.", username, commandData->getArgs()[0], commandData->getArgs()[1]);
-
-	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
-
-	ByteBody* byteBody = sockMsgr->MsgDataToByteBody(msgData);
-
-	ds.Enqueue(commandData->getArgs()[0], byteBody);
 
 	delete msgData;
 	delete byteBody;
+}
+
+
+void Server::SendFileToUser(char* sender, char* recipient, char* fileContents, char* fileName) {
+	
 }

@@ -35,6 +35,8 @@ class SocketMessenger {
 
     ByteBody* MsgDataToByteBody(MsgData* msgData);
     MsgData* ByteToMsgData(const BYTE* body);
+    ByteBody* MsgDataFileToByteBody(MsgData* msgData);
+    MsgData* ByteToMsgDataFile(BYTE* body);
     
   private:
     NbStatus RecvNB(struct MsgStat* mStat, int sockfd);

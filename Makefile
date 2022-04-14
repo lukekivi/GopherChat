@@ -86,7 +86,7 @@ run_all_tests: run_log_tests run_socket_tests run_user_input_tests run_command_c
 
 ## LOG TESTS
 run_log_tests: log_tests
-	./tests/utils/log_tests
+	valgrind ./tests/utils/log_tests
 
 log_tests: log_main.o log.o tests log
 	g++ tests/objects/utils/log_main.o build/objects/utils/log.o -o tests/utils/log_tests
@@ -107,7 +107,7 @@ socket_main.o: testfiles/utils/socket/socket_main.cpp tests
 
 ## USER INPUT TESTS
 run_user_input_tests: user_input_tests tests
-	./tests/utils/userInput/user_input_tests
+	valgrind ./tests/utils/userInput/user_input_tests
 
 user_input_tests: user_input_main.o script_reader.o log.o tests
 	g++ tests/objects/utils/userInput/user_input_main.o build/objects/utils/userInput/script_reader.o build/objects/utils/log.o -o tests/utils/userInput/user_input_tests
@@ -165,8 +165,8 @@ conn_data_main.o: testfiles/data/conn_data_main.cpp tests
 run_file_tests: file_tests tests
 	valgrind ./tests/utils/file_tests
 
-file_tests: file_main.o tests
-	g++ tests/objects/utils/file_main.o -o tests/utils/file_tests
+file_tests: file_main.o log.o socket_messenger.o tests
+	g++ tests/objects/utils/file_main.o build/objects/utils/log.o build/objects/utils/socket/socket_messenger.o -o tests/utils/file_tests
 
 file_main.o: testfiles/utils/file_main.cpp tests
 	g++ -c testfiles/utils/file_main.cpp -o tests/objects/utils/file_main.o

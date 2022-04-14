@@ -494,8 +494,10 @@ ByteBody*  SocketMessenger::ResponseDataToByteBody(ResponseData* response) {
 ResponseData* SocketMessenger::ByteToResponseData(BYTE* body) {
 	Status status = ReadStatus(body);
 	char* username = ReadUsername(body);
-	ResponseData* responseData = new ResponseData(status, ReadMsg(body), username);
+	char* msg = ReadMsg(body);
+	ResponseData* responseData = new ResponseData(status, msg, username);
 	delete[] username;
+	delete[] msg;
 
 	return responseData;
 }
@@ -535,6 +537,10 @@ char* SocketMessenger::ReadMsg(const BYTE* body) {
 
 
 ByteBody* SocketMessenger::MsgDataToByteBody(MsgData* msgData) {
+	if (msgData->GetMsgType() != UI_MSG) {
+		log->Error("SocketMessenger.MsgDataToByteBody() - receivied FILE_MSG. Should only receive UI_MSGs.");
+		return NULL;
+	}
 	const char* username = msgData->GetUsername();
 	const char* msg = msgData->GetMsg();
 	int msgLen = strlen(msg);
@@ -582,6 +588,7 @@ ByteBody* SocketMessenger::MsgDataToByteBody(MsgData* msgData) {
 
 	delete[] argLen;
 	delete[] msgType;
+	delete byteBody;
 	return new ByteBody(body, len);
 }
 
@@ -603,4 +610,99 @@ MsgType SocketMessenger::ReadMsgType(const BYTE* body) {
 	}
 
 	return static_cast<MsgType>(ByteToInt(cmd));
+}
+
+
+ByteBody* SocketMessenger::MsgDataFileToByteBody(MsgData* msgData) {
+	if (msgData->GetMsgType() != FILE_MSG) {
+		log->Error("SocketMessenger.MsgDataFileToByteBody() - receivied UI_MSG. Should only receive FILE_MSGs.");
+		return NULL;
+	}
+
+	const char* username = msgData->GetUsername();
+	const char* fileName = msgData->GetFileName();
+	const char* fileContents = msgData->GetMsg();
+	int fileNameLen = strlen(fileName);
+	int fileContentsLen = strlen(fileContents);
+	int len = 0;
+
+	/**
+	 * total length includes
+	 * - integer representation of MsgType enum
+	 * - username field of length 8
+	 * - integer preceding msg to represent msg length
+	 * - length of each msg
+	 */
+	len = 3 * INT_BYTES + MAX_USRNAME_SIZE + fileNameLen + fileContentsLen;
+
+	// allocate space for entire body
+	BYTE* body = new BYTE[len];
+
+	// embed the msgtype
+	BYTE* msgType = IntToByte(msgData->GetMsgType());	
+	int i = 0;
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = msgType[j];
+		i++;
+	}
+
+	// embed the username
+	for (int j = 0; j < MAX_USRNAME_SIZE; j++) {
+		if (username == NULL || j > strlen(username) - 1) {
+			body[i] = '-';
+		} else {
+			body[i] = username[j];
+		}
+		i++;
+	}
+
+	// embed the filename length
+	BYTE* argOneLen = IntToByte(fileNameLen);
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = argOneLen[j];
+		i++;
+	}
+
+	// embed the filename
+	ByteBody* byteBodyOne = CharToByteBody(fileName);
+	BYTE* argOne = byteBodyOne->GetBody();
+	for (int j = 0; j < fileNameLen; j++) {
+		body[i] = argOne[j];
+		i++;
+	}
+
+	// embed the fileContents len
+	BYTE* argTwoLen = IntToByte(fileContentsLen);
+	for (int j = 0; j < INT_BYTES; j++) {
+		body[i] = argTwoLen[j];
+		i++;
+	}
+
+	// embed the fileContents
+	ByteBody* byteBodyTwo = CharToByteBody(fileContents);
+	BYTE* argTwo = byteBodyTwo->GetBody();
+	for (int j = 0; j < fileContentsLen; j++) {
+		body[i] = argTwo[j];
+		i++;
+	}
+
+	delete byteBodyOne;
+	delete byteBodyTwo;
+	delete[] argOneLen;
+	delete[] argTwoLen;
+	delete[] msgType;
+	return new ByteBody(body, len);
+}
+
+
+MsgData* SocketMessenger::ByteToMsgDataFile(BYTE* body) {
+	MsgType msgType = ReadMsgType(body);
+	char* username = ReadUsername(body);
+	char** args = ReadArgs(body, 2);
+	char* fileName = args[0];
+	char* fileConents = args[1];
+	args[0] = NULL;
+	args[1] = NULL;
+	delete[] args;
+	return new MsgData(msgType, username, fileConents, fileName);
 }

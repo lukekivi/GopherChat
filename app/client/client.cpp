@@ -267,15 +267,15 @@ void Client::StartCommand(CommandData* commandData) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[0]);
 				return;
 			}
-			commandData->SetFileContents(fileContents);
+			commandData->setFileContents(fileContents);
 			break;
 		case SEND_FILE_TO:
-			fileConents = fileTrans.fileToChar(commandData->getArgs()[1]);
-			if (fileCotents == NULL) {
-				log->Error("Failed to read from file: %s", commandData->getArgs()[1]));
+			fileContents = fileTrans.fileToChar(commandData->getArgs()[1]);
+			if (fileContents == NULL) {
+				log->Error("Failed to read from file: %s", commandData->getArgs()[1]);
 				return;
 			}
-			commandData->SetFileContents(fileContents);
+			commandData->setFileContents(fileContents);
 			break;
 		default:
 			if (loggedInUser == NULL) {
@@ -338,20 +338,20 @@ void Client::ExitGracefully() {
 
 void Client::SetupSession() {
 	// setup UI connection
-	int i = BuildConn(UI);
+	int index = BuildConn(UI);
 	CommandData* uiCommandData = BuildSetupCommand(UI_CONN);
-	PrepareMessage(uiCommandData, i);
+	PrepareMessage(uiCommandData, index);
 	delete uiCommandData;
 	log->Info("Started UI connection.");
-	SendMessage(i);
+	SendMessage(index);
 
 	// setup FILE connections
 	CommandData* fileCommandData = BuildSetupCommand(FILE_CONN);
 	for (int i = 0; i < FILE_CONNS; i++) {
-		int i = BuildConn(FIL);
-		PrepareMessage(uiCommandData, i);
+		index = BuildConn(FIL);
+		PrepareMessage(uiCommandData, index);
 		log->Info("Started FILE connection.");
-		SendMessage(i);
+		SendMessage(index);
 	}
 	delete fileCommandData;
 }
