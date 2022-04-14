@@ -41,6 +41,7 @@ int SocketMessenger::ByteToInt(const BYTE* arr) {
     int multiplier = 1;
 
     for (int i = 0; i < INT_BYTES; i++) {
+		std::cout << "ByteToInt: " << i << std::endl;
         value += ((int) arr[i]) * multiplier;
 
         multiplier *= MAX_VALUE;
