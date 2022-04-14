@@ -10,11 +10,13 @@ class ConnData {
     ConnData() {
         conn = REG;
         strcpy(username, "");
+        isActive = false;
     }
 
     ConnData(const ConnData& connData) {
         conn = connData.conn;
         SetUsername(connData.username);
+        isActive = connData.isActive;
     }
 
     void SetUsername(const char* username_) {
@@ -46,7 +48,7 @@ class ConnData {
     }
 
  private: 
-    bool isActive = false;
+    bool isActive;
     ConnType conn;
     char username[MAX_USRNAME_SIZE+1];
 };

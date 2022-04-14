@@ -13,6 +13,7 @@ class CommandData {
         command = command_;
         args = args_;    
         numArgs = numArgs_;
+        username = NULL;
     }
 
     CommandData(const CommandData& commandData) {
@@ -58,7 +59,7 @@ class CommandData {
     Command command;
     char** args;
     int numArgs;
-    char* username = NULL;
+    char* username;
 };
 
 #endif

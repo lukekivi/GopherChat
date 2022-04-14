@@ -61,20 +61,20 @@ class Client {
         std::vector<CommandData*> commands;
 
     	struct sockaddr_in serverAddr;
-        int nConns = 0;
+        int nConns;
         pollfd peers[MAX_CONNS];
         SendStat sStats[MAX_CONNS];
         RecvStat rStats[MAX_CONNS];
         ConnType connTypes[MAX_CONNS];
 
-        bool unconfirmedLogout = false;
-        bool unconfirmedLogin = false;
+        bool unconfirmedLogout;
+        bool unconfirmedLogin;
 
         Log* log;
         SocketMessenger* sockMsgr;
         FileTransporter fileTrans;
 
-        char* loggedInUser = NULL;
+        char* loggedInUser;
 };
 
 #endif

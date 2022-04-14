@@ -4,6 +4,10 @@
 Client::Client(Log* log) { 
 	SetLog(log); 
 	sockMsgr = new SocketMessenger(log);
+	unconfirmedLogout = false;
+    unconfirmedLogin = false;
+	loggedInUser = NULL;
+	nConns = 0;
 }
 
 Client::~Client() {

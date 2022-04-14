@@ -1,5 +1,4 @@
-REGISTER steph 1234
-LOGIN steph 1234
+REGISTER evan 1234
+LOGIN evan 1234
 DELAY 2
-SEND Hello all
-LOGOUT
+SENDF file.txt

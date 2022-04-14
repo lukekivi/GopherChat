@@ -59,7 +59,7 @@ std::vector<CommandData*> ScriptReader::getCommands() {
             commands.push_back(readDelay(iss));
 
         } else {
-            log->Error("Invalid Command: %s", command);
+            log->Error("Invalid Command: %s", command.c_str());
             exit(EXIT_FAILURE);
         }
     }
@@ -409,7 +409,7 @@ bool ScriptReader::isMessageValid(std::string msg) {
     std::string FUN_ID = "ScriptReader.isMessagValid()";
     int msgLen = msg.length();
     if (msgLen <= 0) {
-        log->Error("%s - message should not be empty.", FUN_ID);
+        log->Error("%s - message should not be empty.", FUN_ID.c_str());
         return false;
     }
 

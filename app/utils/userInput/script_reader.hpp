@@ -1,5 +1,5 @@
 #ifndef SCRIPT_READER_H
-#define SCRIIPT_READER_H
+#define SCRIPT_READER_H
 
 #include <fstream>
 #include "../utils.hpp"

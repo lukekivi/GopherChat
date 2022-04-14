@@ -30,7 +30,7 @@ run_server: server_main
 	./build/server/server_main $(port_num)
 
 run_client: client_main
-	valgrind ./build/client/client_main $(server_ip) $(port_num) $(command_file)
+	./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
 server_main: server_main.o server.o socket_messenger.o data_store.o log.o log
