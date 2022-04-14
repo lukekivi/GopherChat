@@ -321,6 +321,7 @@ BYTE* SocketMessenger::CommandDataToByte(CommandData* command, int* len) {
 CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
 	CommandData* commandData = NULL;
 	Command command = ReadCommand(body);
+	std::cout << "ByteToCommandData: " << command << std::endl;
 
 	char* username = ReadUsername(body);
 	int numArgs = 0;
@@ -397,6 +398,7 @@ char* SocketMessenger::ReadUsername(const BYTE* body) {
 }
 
 char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
+	std::cout << "ReadArgs: reading in " << numArgs << " args" << std::endl;
 	if (numArgs == 0) {
 		return NULL;
 	}
@@ -406,6 +408,7 @@ char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
 	char** args = new char*[numArgs];
 
 	for (int i = 0; i < numArgs; i++) {
+		std::cout << "ReadArgs: reading in argument" << i+1 << std::endl;
 		BYTE* num = body + offset;
 		sizes[i] = ByteToInt(num);
 		offset += INT_BYTES;
