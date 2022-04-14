@@ -764,6 +764,11 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 	std::cout << sndr << ": received file \"" << fName << "\"..." << std::endl;
 
 	ByteBody* byteBody = sockMsgr->MsgDataFileToByteBody(msgData);
+
+	MsgData* msgDataTwo = sockMsgr->ByteToMsgDataFile(byteBody->GetBody());
+	
+	std::cout << msgDataTwo->GetUsername() << ": received file \"" << msgDataTwo->GetFileName() << "\"..." << std::endl;
+
 	if (byteBody == NULL) {
 		delete msgData;
 		ExitGracefully();
