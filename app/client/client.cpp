@@ -408,7 +408,7 @@ void Client::HandleMsg(int i) {
 	if (msgType == UI_MSG) {
 		PrintToUi(msgData);
 	} else if (msgType == FILE_MSG) {	// is FILE_MSG
-
+		fileTrans.charToFile(msgData->GetFileName(), msgData->GetMsg());
 	} else {
 		log->Error("Impossible MSG_TYPE, %d", msgType);
 		delete msgData;

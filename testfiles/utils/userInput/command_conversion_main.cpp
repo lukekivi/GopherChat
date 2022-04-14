@@ -2,6 +2,7 @@
 #include "../../../app/utils/userInput/script_reader.hpp"
 #include "../../../app/utils/log.hpp"
 #include "../../../app/utils/socket/socket_messenger.hpp"
+#include "../../../app/utils/file_transporter.hpp"
 
 const char* LOG_PATH = "log/log_userInput.txt";
 
@@ -26,6 +27,7 @@ int TestScriptRead() {
     int len;
     int numFailed = 0;
 
+    FileTransporter ft;
     Log log(LOG_PATH);
     ScriptReader scriptReader("testcases/userInputTest.txt", &log);
     SocketMessenger sockMsgr(&log);
@@ -125,18 +127,6 @@ int TestScriptRead() {
     if (strcmp(sendingUserNameThree, expectedSendingUserNameThree.c_str()) != 0) {
         std::cout << "sendingUserNameThree: " <<  sendingUserNameThree << " was not " << expectedSendingUserNameThree << std::endl;
         numFailed++;
-    }
-
-
-    delete commandDataOne;
-    delete[] bOne;
-    delete commandDataTwo;
-    delete[] bTwo;
-    delete commandDataThree;
-    delete[] bThree;
-
-    for (int i = 0; i < commands.size(); i++) {
-        delete commands.at(i);
     }
 
     // /** SEND **/
@@ -241,26 +231,37 @@ int TestScriptRead() {
     // }
 
 
-    // /** SEND_FILE **/
-    // Command commandEight = commands.at(7)->getCommand();
-    // Command expectedCommandEight = SEND_FILE;
-    // if (commandEight != expectedCommandEight) {
-    //     std::cout << "expectedCommandEight: " << commandEight << " was not " << expectedCommandEight << std::endl;
-    //     numFailed++;
-    // }
+    /** SEND_FILE **/
 
-    // int numArgsEight = commands.at(7)->getNumArgs();
-    // if (numArgsEight != 1) { 
-    //     std::cout << "NumArgsEight: " << numArgsEight << " was not 1" << std::endl;
-    //     numFailed++;
-    // }
+    char* u8 = new char[userThree.length() + 1];
+    strcpy(u8, userThree.c_str());
+    commands.at(7)->setUsername(u8);
 
-    // char* fileEight = commands.at(7)->getArgs()[0];
-    // std::string expectedFileEight = "userInputTestFileOne.txt";
-    // if (strcmp(fileEight, expectedFileEight.c_str()) != 0) {
-    //     std::cout << "fileEight: \"" << fileEight << "\" was not \"" << expectedFileEight << "\"" <<  std::endl;
-    //     numFailed++;
-    // }
+    char* contents = ft.fileToChar(commands.at(7)->getArgs()[0]);
+    commands.at(7)->setFileContents(contents);
+
+    BYTE* bEight = sockMsgr.CommandDataToByte(commands.at(7), &len);
+    CommandData* commandDataEight = sockMsgr.ByteToCommandData(bEight);
+    Command commandEight = commandDataEight->getCommand();
+    Command expectedCommandEight = SEND_FILE;
+
+    if (commandEight != expectedCommandEight) {
+        std::cout << "expectedCommandEight: " << commandEight << " was not " << expectedCommandEight << std::endl;
+        numFailed++;
+    }
+
+    int numArgsEight = commandDataEight->getNumArgs();
+    if (numArgsEight != 2) { 
+        std::cout << "NumArgsEight: " << numArgsEight << " was not 1" << std::endl;
+        numFailed++;
+    }
+
+    char* fileEight = commandDataEight->getArgs()[0];
+    std::string expectedFileEight = "testfiles/test_input_files/testFile.txt";
+    if (strcmp(fileEight, expectedFileEight.c_str()) != 0) {
+        std::cout << "fileEight: \"" << fileEight << "\" was not \"" << expectedFileEight << "\"" <<  std::endl;
+        numFailed++;
+    }
 
 
     // /** SEND_FILE_TO **/
@@ -333,6 +334,20 @@ int TestScriptRead() {
     //     numFailed++;
     // }
 
+
+    delete commandDataOne;
+    delete[] bOne;
+    delete commandDataTwo;
+    delete[] bTwo;
+    delete commandDataThree;
+    delete[] bThree;
+    delete commandDataEight;
+    delete[] bEight;
+
+
+    for (int i = 0; i < commands.size(); i++) {
+        delete commands.at(i);
+    }
 
     return numFailed;
 }

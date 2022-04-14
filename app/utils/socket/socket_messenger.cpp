@@ -41,7 +41,6 @@ int SocketMessenger::ByteToInt(const BYTE* arr) {
     int multiplier = 1;
 
     for (int i = 0; i < INT_BYTES; i++) {
-		std::cout << "ByteToInt: " << i << std::endl;
         value += ((int) arr[i]) * multiplier;
 
         multiplier *= MAX_VALUE;
@@ -78,8 +77,6 @@ ByteBody* SocketMessenger::CharToByteBody(const char* str) {
  */
 NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer) {	
 
-	// std::cout << "Sending size: " << sStat->size << std::endl;
-
 	while (sStat->nSent < sStat->size) {
 		//connStat keeps tracks of how many bytes have been sent, allowing us to "resume" 
 		//when a previously non-writable socket becomes writable. 
@@ -101,7 +98,6 @@ NbStatus SocketMessenger::SendMsgNB(struct SendStat* sStat, struct pollfd* pPeer
 		}
 	}
 
-	// std::cout << "Message sent." << std::endl;
 	pPeer->events &= ~POLLWRNORM;
 	return OKAY;
 }
@@ -166,7 +162,6 @@ NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer
 			if (rStat->sizeStat.nRecv == rStat->sizeStat.size) {
 				// size read completely
 				SetRecvStatWithSize(rStat);
-				// std::cout << "Finished reading size: " << rStat->sizeStat.size << std::endl;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
 				exit(EXIT_FAILURE);
@@ -181,7 +176,6 @@ NbStatus SocketMessenger::RecvMsgNB(struct RecvStat* rStat, struct pollfd* pPeer
 
 		if (status == OKAY) {
 			if (rStat->bodyStat.nRecv == rStat->bodyStat.size) {
-				// std::cout << "Finished reading body: " << rStat->bodyStat.size << std::endl;
 				return status;
 			} else if (rStat->sizeStat.nRecv > rStat->sizeStat.size) {
 				log->Error("Unexpected error occurred where rStat sizeStat.nRecv is greater than its exepected size");
@@ -322,7 +316,6 @@ BYTE* SocketMessenger::CommandDataToByte(CommandData* command, int* len) {
 CommandData* SocketMessenger::ByteToCommandData(BYTE* body) {
 	CommandData* commandData = NULL;
 	Command command = ReadCommand(body);
-	std::cout << "ByteToCommandData: " << command << std::endl;
 
 	char* username = ReadUsername(body);
 	int numArgs = 0;
@@ -399,7 +392,6 @@ char* SocketMessenger::ReadUsername(const BYTE* body) {
 }
 
 char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
-	std::cout << "ReadArgs: reading in " << numArgs << " args" << std::endl;
 	if (numArgs == 0) {
 		return NULL;
 	}
@@ -409,7 +401,6 @@ char** SocketMessenger::ReadArgs(BYTE* body, int numArgs) {
 	char** args = new char*[numArgs];
 
 	for (int i = 0; i < numArgs; i++) {
-		std::cout << "ReadArgs: reading in argument" << i+1 << std::endl;
 		BYTE* num = body + offset;
 		sizes[i] = ByteToInt(num);
 		offset += INT_BYTES;

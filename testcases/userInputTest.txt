@@ -5,7 +5,7 @@ SEND hello there, how art thou?
 SEND2 lucas I would like to say hello.
 SENDA this is an anonymous message.
 SENDA2 steph hey mom, you smell bad.
-SENDF userInputTestFileOne.txt
+SENDF testfiles/test_input_files/testFile.txt
 SENDF2 evan userInputTestFileTwo.txt
 LIST
 DELAY 3

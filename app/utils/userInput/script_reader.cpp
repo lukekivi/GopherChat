@@ -267,7 +267,7 @@ CommandData* ScriptReader::readSendFile(std::istringstream& iss) {
     args[0] = fileName;
     args[1] = NULL;
 
-    return new CommandData(SEND_FILE, args, 1);
+    return new CommandData(SEND_FILE, args, 2);
 }
 
 
@@ -308,7 +308,7 @@ CommandData* ScriptReader::readSendFileTo(std::istringstream& iss) {
     args[1] = fileName;
     args[2] = NULL;
 
-    return new CommandData(SEND_FILE_TO, args, 2);
+    return new CommandData(SEND_FILE_TO, args, 3);
 }
 
 
