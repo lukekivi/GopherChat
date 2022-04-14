@@ -1,4 +1,4 @@
-#ifndef USER_ENTY_H
+#ifndef USER_ENTRY_H
 #define USER_ENTRY_H
 
 #include <cstring>

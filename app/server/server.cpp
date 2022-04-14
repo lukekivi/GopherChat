@@ -773,7 +773,7 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 		int index = GetFileConn(recipient.c_str());
 
 		if (index == -1) {
-			log->Error("Was unable to find an available file connection for: %s", recipient);
+			log->Error("Was unable to find an available file connection for: %s", recipient.c_str());
 		} else {
 			sockMsgr->InitSendStat(&sStat[index]);
 			sockMsgr->BuildSendMsg(&sStat[index], byteBody);	

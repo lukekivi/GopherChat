@@ -7,8 +7,8 @@
 #   * make run_all_tests      # 
 ###############################
 
-port_num = 9011
-server_ip = 192.168.1.22
+port_num = 9013
+server_ip = 54.172.118.127
 command_file = "commands.txt"
 
 build:
