@@ -31,8 +31,9 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 
 	while (1) {	
 		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
-			StartCommand(commands.at(commandIndex));
-			commandIndex++;
+			if (StartCommand(commands.at(commandIndex++)) == 1) {
+				continue;
+			}
 		}
 
 		int r = poll(peers, nConns, -1);	
@@ -239,23 +240,23 @@ void Client::PrintResponse(ResponseData* responseData) {
 }
 
 
-void Client::StartCommand(CommandData* commandData) {
+int Client::StartCommand(CommandData* commandData) {
 	char* fileContents;
 	switch(commandData->getCommand()) {
 		case LOGIN:
 			if (StartLogin() == 1) {
-				return; // error
+				return 1;
 			}
 			break;
 		case LOGOUT:
 			if (StartLogout() == 1) {
-				return; // error
+				return 1;
 			}
 			commandData->setUsername(loggedInUser);
 			break;
 		case DELAY:
 			Pause(atoi(commandData->getArgs()[0]));
-			return;
+			return 1;
 		case REGISTER:
 			break;
 		case SEND:
@@ -264,19 +265,19 @@ void Client::StartCommand(CommandData* commandData) {
 		case SEND_TO_ANON:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot send a message until you are logged in!" << std::endl;
-				return;
+				return 1;
 			}
 			commandData->setUsername(loggedInUser);
 			break;
 		case SEND_FILE:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot send a file until you are logged in!" << std::endl;
-				return;
+				return 1;
 			}
 			fileContents = fileTrans.fileToChar(commandData->getArgs()[0]);
 			if (fileContents == NULL) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[0]);
-				return;
+				return 1;
 			}
 			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
@@ -284,26 +285,33 @@ void Client::StartCommand(CommandData* commandData) {
 		case SEND_FILE_TO:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot send a file until you are logged in!" << std::endl;
-				return;
+				return 1;
 			}
 			fileContents = fileTrans.fileToChar(commandData->getArgs()[1]);
 			if (fileContents == NULL) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[1]);
-				return;
+				return 1;
 			}
 			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
+
+			std::cout << "sender" << commandData->getUsername() << std::endl;
+	std::cout << "numArgs" << commandData->getNumArgs() << std::endl;
+	std::cout << "recip" << commandData->getArgs()[0] << std::endl;
+	std::cout << "fileName" << commandData->getArgs()[1] << std::endl;
+		std::cout << "fileContents" << commandData->getArgs()[2] << std::endl;
 			break;
 		default:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot contact GopherChat until you are logged in!" << std::endl;
-				return;
+				return 1;
 			}
 	}
 
 	int i = BuildConn(REG);
 	PrepareMessage(commandData, i);
 	SendMessage(i);
+	return 0;
 }
 
 

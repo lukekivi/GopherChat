@@ -63,10 +63,11 @@ class Server {
     void StartMessageToUser(char* username, CommandData* commandData, bool isAnon);
     void CheckMessageDeques();
     void StartFileToAllUsers(CommandData* commandData);
-    void SendFileToUser(char* sender, char* recipient, char* fileContents, char* fileName);
+    void SendFileToUser(CommandData* commandData);
 
     void HandleSendFile(int i, CommandData* commandData);
     void HandleSendFileTo(int i, CommandData* commandData);
+    void ShedConnections(const char* username);
 
     void ExitGracefully();
 

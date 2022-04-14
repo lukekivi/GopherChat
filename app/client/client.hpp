@@ -44,7 +44,7 @@ class Client {
         void PrintToUi(MsgData* msgData);
         void PrintResponse(ResponseData* responseData); 
 
-        void StartCommand(CommandData* command);
+        int StartCommand(CommandData* command);
         int StartLogin();
         int StartLogout();
 

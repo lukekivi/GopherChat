@@ -289,7 +289,14 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 
 	switch(status) {
 		case OK:
-			msg = "Already logged in somewhere else.";
+			if (GetUiConn(username) == -1) {	// Is logged in but no UI connection (process never made UI connections)
+				msg = "Already logged in somewhere else.";
+			} else {
+				ds.Logout(username);		// relics of old user
+				ShedConnections(username);  // need to be removed
+				ds.Login(username, password);
+				msg = "Succesfullylogged in.";
+			}
 			break;
 		case FAILURE:
 			msg = "This user doesn't exist--cannot log in.";
@@ -661,7 +668,7 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 		msg = "Successfully sent public file.";
 		status = OK;
 	} else {
-		msg = "Not logged in. Failed to public file.";
+		msg = "Not logged in. Failed send to public file.";
 		status = FAILURE;
 	}
 
@@ -673,57 +680,23 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 
 
 void Server::HandleSendFileTo(int i, CommandData* commandData) {
-	char* sender = commandData->getUsername();
-	char* sndr = new char[strlen(sender) + 1];
-	strcpy(sndr, sender);
+	char* message;
+	const char* msg;
+	Status status;
 
-	char** args = commandData->getArgs();
-
-	char* recipient = args[0];
-
-	char* fileName = args[1];
-	char* fName = new char[strlen(fileName) + 1];
-	strcpy(fName, fileName);
-
-	char* fileContents = args[2];
-	char* msg = new char[strlen(fileContents) + 1];
-	strcpy(msg, fileContents);
-
-	char contentSummary[SUMMARY_LEN+4];
-	int contentLen = strlen(fileContents);
-	if (SUMMARY_LEN < contentLen) {
-		contentSummary[SUMMARY_LEN]   = '.';
-		contentSummary[SUMMARY_LEN+1] = '.';
-		contentSummary[SUMMARY_LEN+2] = '.';
-		contentSummary[SUMMARY_LEN+3] = '\0';
-		for (int i = 0; i < SUMMARY_LEN; i++) {
-			contentSummary[i] = fileContents[i];
-		}
+	if (ds.IsLoggedIn(commandData->getUsername())) {
+		SendFileToUser(commandData);
+		msg = "Successfully sent file.";
+		status = OK;
 	} else {
-		strcpy(contentSummary, fileContents);
+		msg = "Not logged in. Failed to send file.";
+		status = FAILURE;
 	}
 
-	log->Out("Sending file.", sndr, recipient, fName, contentSummary, contentLen);
+	message = new char[strlen(msg) + 1];
+	strcpy(message, msg);
 
-	MsgData* msgData = new MsgData(FILE_MSG, sndr, msg, fName);
-	ByteBody* byteBody = sockMsgr->MsgDataFileToByteBody(msgData);
-
-	if (byteBody == NULL) {
-		delete msgData;
-		ExitGracefully();
-	}
-
-	int index = GetFileConn(recipient);
-
-	if (index == -1) {
-		log->Error("HandleSendFileTo(): Was unable to find an available file connection for: %s", recipient);
-	} else {
-		sockMsgr->InitSendStat(&sStat[index]);
-		sockMsgr->BuildSendMsg(&sStat[index], byteBody);
-	}
-
-	delete msgData;
-	delete byteBody;
+	SendResponse(i, new ResponseData(status, message, commandData->getUsername())); // respond to sender
 }
 
 
@@ -791,6 +764,66 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 }
 
 
-void Server::SendFileToUser(char* sender, char* recipient, char* fileContents, char* fileName) {
-	
+void Server::SendFileToUser(CommandData* commandData) {
+	char* sender = commandData->getUsername();
+	char* sndr = new char[strlen(sender) + 1];
+	strcpy(sndr, sender);
+
+	char** args = commandData->getArgs();
+
+	char* recipient = args[0];
+
+	char* fileName = args[1];
+	char* fName = new char[strlen(fileName) + 1];
+	strcpy(fName, fileName);
+
+	char* fileContents = args[2];
+	char* msg = new char[strlen(fileContents) + 1];
+	strcpy(msg, fileContents);
+
+	char contentSummary[SUMMARY_LEN+4];
+	int contentLen = strlen(fileContents);
+	if (SUMMARY_LEN < contentLen) {
+		contentSummary[SUMMARY_LEN]   = '.';
+		contentSummary[SUMMARY_LEN+1] = '.';
+		contentSummary[SUMMARY_LEN+2] = '.';
+		contentSummary[SUMMARY_LEN+3] = '\0';
+		for (int i = 0; i < SUMMARY_LEN; i++) {
+			contentSummary[i] = fileContents[i];
+		}
+	} else {
+		strcpy(contentSummary, fileContents);
+	}
+
+	log->Out("Sending file.", sndr, recipient, fName, contentSummary, contentLen);
+
+	MsgData* msgData = new MsgData(FILE_MSG, sndr, msg, fName);
+	ByteBody* byteBody = sockMsgr->MsgDataFileToByteBody(msgData);
+
+	if (byteBody == NULL) {
+		delete msgData;
+		ExitGracefully();
+	}
+
+	int index = GetFileConn(recipient);
+
+	if (index == -1) {
+		log->Error("HandleSendFileTo(): Was unable to find an available file connection for: %s", recipient);
+	} else {
+		sockMsgr->InitSendStat(&sStat[index]);
+		sockMsgr->BuildSendMsg(&sStat[index], byteBody);
+		SendMessage(index);
+	}
+
+	delete msgData;
+	delete byteBody;
+}
+
+
+void Server::ShedConnections(const char* username) {
+	for (int i = 0; i < nConns; i++) {
+		if (strcmp(username, connData[i].GetUsername()) == 0) {
+			RemoveConnection(i);
+		}
+	}
 }
