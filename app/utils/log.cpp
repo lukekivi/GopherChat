@@ -131,9 +131,10 @@ void Log::Out(
             std::cout << ", ";
         } 
     }
+    std::cout << std::endl;
     std::cout << "\t-   file: " << fileName << std::endl;
     std::cout << "\t-    msg: " << msg << std::endl;
-    std::cout << "\t-   size:" << size << std::endl;
+    std::cout << "\t-   size: " << size << std::endl;
 }
 
 
