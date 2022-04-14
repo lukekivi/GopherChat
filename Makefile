@@ -8,7 +8,7 @@
 ###############################
 
 port_num = 9011
-server_ip = 54.172.118.127
+server_ip = 192.168.1.22
 command_file = "commands.txt"
 
 build:
@@ -27,10 +27,10 @@ log:
 
 # RUN EXECUTABLES
 run_server: server_main
-	./build/server/server_main $(port_num)
+	valgrind ./build/server/server_main $(port_num)
 
 run_client: client_main
-	./build/client/client_main $(server_ip) $(port_num) $(command_file)
+	valgrind ./build/client/client_main $(server_ip) $(port_num) $(command_file)
 
 # EXECUTABLES
 server_main: server_main.o server.o socket_messenger.o data_store.o log.o log
