@@ -226,6 +226,7 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleSendToAnon(i, commandData);
 			break;
 		case SEND_FILE:
+			std::cout << "sending file" << std::endl;
 			HandleSendFile(i, commandData);
 			break;
 		case SEND_FILE_TO:
