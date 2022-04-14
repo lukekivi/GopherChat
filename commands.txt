@@ -1,2 +1,3 @@
-REGISTER evan 1234
-LOGIN evan 1234
+REGISTER steph 1234
+LOGIN steph 1234
+SENDF testFile.txt

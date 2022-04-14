@@ -46,6 +46,22 @@ void Log::Info(const char * format, ...) {
 }
 
 
+void Log::Out(const char * format, ...) {
+    char msg[LOG_MSG_SIZE];
+	va_list argptr;
+
+	va_start(argptr, format);
+	vsprintf(msg, format, argptr);
+	va_end(argptr);
+
+    if (file.is_open()) {
+        file << msg << std::endl;
+    } else {
+        std::cerr << "ERROR: file not open:\n\t" << msg << std::endl;
+    }
+}
+
+
 void Log::Out(
     const char* description,
     const char* user,
