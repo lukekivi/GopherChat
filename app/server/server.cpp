@@ -777,6 +777,7 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 		} else {
 			sockMsgr->InitSendStat(&sStat[index]);
 			sockMsgr->BuildSendMsg(&sStat[index], byteBody);	
+			SendMessage(index);
 		}
 	}
 

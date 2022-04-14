@@ -107,6 +107,7 @@ void Client::RecvMessage(int i) {
 
 	switch(status) {
 		case OKAY:
+			std::cout << "Received Message" << std::endl;
 			// successfully read from socket
 			if (!IsUiConn(i) && !IsFileConn(i)) {
 				HandleResponse(i);
@@ -410,6 +411,7 @@ void Client::HandleMsg(int i) {
 	if (msgType == UI_MSG) {
 		PrintToUi(msgData);
 	} else if (msgType == FILE_MSG) {	// is FILE_MSG
+		log->Out("%s: received file \"%s\"",msgData->GetUsername(), msgData->GetFileName());
 		fileTrans.charToFile(msgData->GetFileName(), msgData->GetMsg());
 	} else {
 		log->Error("Impossible MSG_TYPE, %d", msgType);
