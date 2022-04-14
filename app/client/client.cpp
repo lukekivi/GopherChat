@@ -271,6 +271,7 @@ void Client::StartCommand(CommandData* commandData) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[0]);
 				return;
 			}
+			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
 			break;
 		case SEND_FILE_TO:
@@ -279,6 +280,7 @@ void Client::StartCommand(CommandData* commandData) {
 				log->Error("Failed to read from file: %s", commandData->getArgs()[1]);
 				return;
 			}
+			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
 			break;
 		default:
