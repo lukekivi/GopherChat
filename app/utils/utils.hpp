@@ -102,7 +102,7 @@ enum Status {
  */
 enum MsgType {
 	FILE_MSG = 50,
-	UI_MSG = 41
+	UI_MSG = 51
 };
 
 

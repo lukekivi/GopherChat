@@ -108,11 +108,14 @@ void Client::RecvMessage(int i) {
 	switch(status) {
 		case OKAY:
 			// successfully read from socket
-			if (!IsUiConn(i) && !IsFileConn(i)) {
-				HandleResponse(i);
-			} else {
+			if (IsUiConn(i)) {
 				HandleMsg(i);
 				sockMsgr->InitRecvStat(&rStats[i]);
+			} else if(IsFileConn(i)) {
+				HandleFile(i);
+				sockMsgr->InitRecvStat(&rStats[i]);
+			} else {
+				HandleResponse(i);
 			}
 			break;
 		case BLOCKED:
@@ -414,17 +417,31 @@ void Client::HandleMsg(int i) {
 	MsgData* msgData = sockMsgr->ByteToMsgData(rStats[i].bodyStat.msg);
 
 	MsgType msgType = msgData->GetMsgType();
-
 	if (msgType == UI_MSG) {
 		PrintToUi(msgData);
-	} else if (msgType == FILE_MSG) {	// is FILE_MSG
+	} else {
+		log->Error("MsgType did not match UI_MSG(50), %d", msgType);
+		delete msgData;
+		ExitGracefully();
+	}
+
+	delete msgData;
+}
+
+
+void Client::HandleFile(int i) {
+	MsgData* msgData = sockMsgr->ByteToMsgDataFile(rStats[i].bodyStat.msg);
+
+	MsgType msgType = msgData->GetMsgType();
+
+	if (msgType == FILE_MSG) {
 		if (fileTrans.charToFile(msgData->GetFileName(), msgData->GetMsg())) {
 			std::cout << msgData->GetUsername() << ": sent you the file \"" << msgData->GetFileName() << "\"" << std::endl;
 		} else {
 			std::cout << msgData->GetUsername() << ":sent you the file \"" << msgData->GetFileName() << "\". However, a file by the same name already existed so it failed to download." << std::endl;
 		}
 	} else {
-		log->Error("Impossible MSG_TYPE, %d", msgType);
+		log->Error("MsgType did not match FILE_MSG(51), %d", msgType);
 		delete msgData;
 		ExitGracefully();
 	}

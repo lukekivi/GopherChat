@@ -17,7 +17,6 @@ class Log {
 
         void Error(const char* format, ...);
         void Info(const char* format, ...);
-        void Out(const char* format, ...);
         void Out(
             const char* description, 
             const char* user, 

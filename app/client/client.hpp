@@ -55,6 +55,7 @@ class Client {
         void Pause(int secs);
 
         void HandleMsg(int i);
+        void HandleFile(int i);
 
         void ExitGracefully();
 
