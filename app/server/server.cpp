@@ -234,6 +234,7 @@ void Server::HandleReceivedCommand(int i, CommandData* commandData) {
 			HandleSendFileTo(i, commandData);
 			break;
 		case LIST:
+			HandleList(i, commandData);
 			break;
 		case DELAY:
 			break;
@@ -274,10 +275,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 
 	log->Out("Register", username, NULL, msg);
 
-	message = new char[strlen(msg) + 1];
-	strcpy(message, msg);
-
-	SendResponse(i, new ResponseData(status, message, username));
+	SendResponse(i, new ResponseData(status, msg, username));
 }
 
 
@@ -317,10 +315,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 	log->Out("Log In", username, NULL, msg);
 	log->Info("Log in: %s\n\t- %s", username, msg);
 
-	message = new char[strlen(msg) + 1];
-	strcpy(message, msg);
-
-	SendResponse(i, new ResponseData(status, message, username));
+	SendResponse(i, new ResponseData(status, msg, username));
 }
 
 
@@ -344,13 +339,10 @@ void Server::HandleLogout(int i, CommandData* commandData) {
 			exit(EXIT_FAILURE);
 	}	
 
-	message = new char[strlen(msg) + 1];
-	strcpy(message, msg);
-
-	log->Info("Log out: %s\n\t- %s", username, message);
+	log->Info("Log out: %s\n\t- %s", username, msg);
 	log->Out("Log Out", username, NULL, msg);
 
-	SendResponse(i, new ResponseData(status, message, username));
+	SendResponse(i, new ResponseData(status, msg, username));
 }
 
 
@@ -828,4 +820,20 @@ void Server::ShedConnections(const char* username) {
 			RemoveConnection(i);
 		}
 	}
+}
+
+
+void Server::HandleList(int i, CommandData* commandData) {
+	const char* username = commandData->getArgs()[0];
+	const char* password = commandData->getArgs()[1];
+
+	std::vector<std::string> usernames = ds->GetSignedInUsers();
+	const char* msg = sockMsgr->ListOfUsersToChar(usernames);
+
+	log->Out("List", username, NULL, msg);
+	log->Info("List: %s\n\t- %s", username, msg);
+
+	SendResponse(i, new ResponseData(LISTT, msg, username));
+
+	delete[] msg;
 }

@@ -61,7 +61,7 @@ class Client {
         void ExitGracefully();
 
         int GetCurrentTime();
-        bool IsNoDelay();
+        bool IsDelay();
         int t0;
         int delay;
 

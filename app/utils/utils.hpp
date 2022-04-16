@@ -12,6 +12,7 @@
 #define MAX_TOTAL_SIZE 10000100
 #define MAX_INT_SIZE_LENGTH 8
 #define FILE_CONNS 10
+#define EMPTY_USERNAME_STR "!!!"
 
 typedef unsigned char BYTE;
 
@@ -95,6 +96,7 @@ enum Status {
 	FAILURE     = 31,
 	LOGGED_IN   = 32,
 	LOGGED_OUT  = 33,
+	LISTT 		= 34
 };
 
 

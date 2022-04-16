@@ -701,3 +701,57 @@ MsgData* SocketMessenger::ByteToMsgDataFile(BYTE* body) {
 	delete[] args;
 	return new MsgData(msgType, username, fileConents, fileName);
 }
+
+
+const char* SocketMessenger::ListOfUsersToChar(std::vector<std::string> usernames) {
+	int numUsers = usernames.size();
+	if (numUsers == 0) {
+		return EMPTY_USERNAME_STR;
+	}
+
+	int totalLen = 0;
+
+	for (std::string username : usernames) {
+		totalLen += username.length();
+	}
+
+	int len = (numUsers - 1) + totalLen;
+
+	char* msg = new char[len + 1];
+	msg[len] = '\0';
+
+	int index = 0;
+	for (int i = 0; i < usernames.size(); i++) {
+		for (int j = 0; j < usernames.at(i).length(); j++) {
+			msg[index] = usernames.at(i)[j];
+			index++;
+		}
+		if (i != usernames.size() - 1) {
+			msg[index] = '-';
+			index++;
+		}
+	}
+
+	return msg;
+}
+
+
+std::vector<std::string> SocketMessenger::BuildListOfUsers(const char* msg) {
+	std::vector<std::string> usernames;
+
+	if (msg == NULL || strlen(msg) < 3 || msg[0] == '!') {
+		return usernames;
+	}
+
+	std::string username;
+	for (int i = 0; i < strlen(msg); i++) {
+		if (msg[i] == '-') {
+			usernames.push_back(username);
+			username.clear();
+		} else {
+			username.push_back(msg[i]);
+		}
+	}
+	usernames.push_back(username);
+	return usernames;
+}

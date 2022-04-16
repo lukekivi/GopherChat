@@ -37,6 +37,9 @@ class SocketMessenger {
     MsgData* ByteToMsgData(const BYTE* body);
     ByteBody* MsgDataFileToByteBody(MsgData* msgData);
     MsgData* ByteToMsgDataFile(BYTE* body);
+
+    const char* ListOfUsersToChar(std::vector<std::string> usernames);
+    std::vector<std::string> BuildListOfUsers(const char* msg);
     
   private:
     NbStatus RecvNB(struct MsgStat* mStat, int sockfd);

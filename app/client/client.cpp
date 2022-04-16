@@ -209,6 +209,8 @@ void Client::HandleResponse(int i) {
 			delete[] loggedInUser;
 			loggedInUser = NULL;
 			break;
+		case LIST:
+			PrintList();
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
 			ExitGracefully();
@@ -358,7 +360,6 @@ void Client::ExitGracefully() {
 	commands.clear();
 	delete log;
 	delete sockMsgr;
-	delete loggedInUser;
 	exit(EXIT_SUCCESS);
 }
 
@@ -475,6 +476,7 @@ bool Client::IsDelay() {
 	} else if (GetCurrentTime() - t0 > delay) {
 		t0 = -1;
 		delay = 0;
+		std::cout << "Pause completed" << std::endl;
 		return false;
 	} else {
 		return true;

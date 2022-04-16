@@ -69,6 +69,8 @@ class Server {
     void HandleSendFileTo(int i, CommandData* commandData);
     void ShedConnections(const char* username);
 
+    void HandleList(int i, CommandData* commandData);
+
     void ExitGracefully();
 
     Log* log;
