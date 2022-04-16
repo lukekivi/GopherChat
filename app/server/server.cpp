@@ -824,9 +824,7 @@ void Server::ShedConnections(const char* username) {
 
 
 void Server::HandleList(int i, CommandData* commandData) {
-	const char* username = commandData->getArgs()[0];
-	const char* password = commandData->getArgs()[1];
-
+	char* username = commandData->getUsername();
 	std::vector<std::string> usernames = ds->GetSignedInUsers();
 	const char* msg = sockMsgr->ListOfUsersToChar(usernames);
 

@@ -210,7 +210,7 @@ void Client::HandleResponse(int i) {
 			loggedInUser = NULL;
 			break;
 		case LIST:
-			PrintList();
+			break;
 		default:
 			log->Error("HandleResponse: hit nonexisteant Status.");
 			ExitGracefully();
@@ -305,6 +305,13 @@ int Client::StartCommand(CommandData* commandData) {
 			commandData->setUsername(loggedInUser);
 			commandData->setFileContents(fileContents);
 			break;
+		case LIST:
+		if (loggedInUser == NULL) {
+				std::cout << "You cannot send a file until you are logged in!" << std::endl;
+				return 1;
+			}
+			commandData->setUsername(loggedInUser);
+		 	break;
 		default:
 			if (loggedInUser == NULL) {
 				std::cout << "You cannot contact GopherChat until you are logged in!" << std::endl;
