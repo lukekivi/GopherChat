@@ -291,13 +291,13 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 
 	switch(status) {
 		case OK:
-			if (GetUiConn(username) == -1) {	// Is logged in but no UI connection (process never made UI connections)
+			if (GetUiConn(username) != -1) {	// Is logged in but no UI connection (process never made UI connections)
 				msg = "Already logged in somewhere else.";
 			} else {
 				ds->Logout(username);		// relics of old user
 				ShedConnections(username);  // need to be removed
 				ds->Login(username, password);
-				msg = "Succesfullylogged in.";
+				msg = "Succesfully logged in.";
 			}
 			break;
 		case FAILURE:
