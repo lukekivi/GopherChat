@@ -1,6 +1,5 @@
 #include "server.hpp"
 #include <fstream>
-#include <stdio.h>
 
 const std::string LOG_FILE = "log/server_log.txt";
 
@@ -12,10 +11,10 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	if (strcmp(argv[1], "reset") == 0) { 
-	
-		if (remove(REGISTRAR_FILE_PATH) != 0) {
-			std::cout << "Failed to delete registration file." << std::endl;
-		} else {
+		std::fstream file;
+		file.open(REGISTRAR_FILE_PATH, std::ios::out | std::ios::trunc);
+		if (file.is_open()) {
+			file << "";
 			std::cout << "Reset registration file." << std::endl;
 		}
 		exit(0);
