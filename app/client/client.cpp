@@ -8,6 +8,8 @@ Client::Client(Log* log) {
     unconfirmedLogin = false;
 	loggedInUser = NULL;
 	nConns = 0;
+	t0 = -1;
+	delay = 0;
 }
 
 Client::~Client() {
@@ -30,13 +32,19 @@ void Client::StartClient(const char* serverIp, int port, std::vector<CommandData
 	std::cout << "Welcome to GopherChat!" << std:: endl;
 
 	while (1) {	
-		if (nConns <= MAX_CONNS && commandIndex < commands.size()) { 
+
+		if (!IsDelay() && nConns <= MAX_CONNS) { 
+			if (commandIndex == commands.size()) {
+				std::cout << "All commands have completed." << std::endl;
+				log->Info("All commands have completed.");
+				ExitGracefully();
+			}
 			if (StartCommand(commands.at(commandIndex++)) == 1) {
 				continue;
 			}
 		}
 
-		int r = poll(peers, nConns, -1);	
+		int r = poll(peers, nConns, 30);	
 		if (r < 0) {
 			log->Error("Invalid poll() return value.");
 		}			
@@ -409,9 +417,14 @@ void Client::DisconnectFromServer() {
 
 
 void Client::Pause(int secs) {
-	log->Info("Paused for %d", secs);
-	std::cout << "Paused for " << secs << "secs" << std::endl;
-	usleep(secs * 1000000);
+	if (time > 0) {
+		log->Info("Paused for %d", secs);
+		std::cout << "Paused for " << secs << "secs" << std::endl;
+		delay = secs;
+		t0 = GetCurrentTime();
+	} else {
+		std::cout << "Can't pause for negative durations, silly." << std::endl;
+	}
 }
 
 
@@ -449,4 +462,21 @@ void Client::HandleFile(int i) {
 	}
 
 	delete msgData;
+}
+
+int Client::GetCurrentTime() {
+	return std::time(0);
+}
+
+
+bool Client::IsDelay() {
+	if (t0 == -1) {
+		return false;
+	} else if (GetCurrentTime() - t0 > delay) {
+		t0 = -1;
+		delay = 0;
+		return false;
+	} else {
+		return true;
+	}
 }

@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include "../data/msg_data.hpp"
 #include "../utils/file_transporter.hpp"
+#include <ctime>
 
 #define MAX_CONNS 50
 #define UI_CONNS 1
@@ -58,6 +59,11 @@ class Client {
         void HandleFile(int i);
 
         void ExitGracefully();
+
+        int GetCurrentTime();
+        bool IsNoDelay();
+        int t0;
+        int delay;
 
         std::vector<CommandData*> commands;
 
