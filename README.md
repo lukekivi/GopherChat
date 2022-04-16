@@ -7,6 +7,10 @@ Lucas Kivi - kivix019
 	```
     git clone https://github.com/lukekivi/GopherChat.git
 	```
+* Enter the `GopherChat` directory
+	```
+	cd GopherChat
+	```
 * Build the client executable and server executable with by navigating to the base directory and running:
 	```
     make
