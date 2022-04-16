@@ -5,12 +5,15 @@
 #include "profile.hpp"
 #include "../data/user_entry.hpp"
 #include "../data/byte_body.hpp"
+#include "registrar.hpp"
 #include <unordered_map>
 #include <string>
 #include <vector>
 
 class DataStore {
   public:
+    DataStore(const char* registrarFilePath);
+    ~DataStore() { delete reg; }
     Status Register(const char* username, const char* password);
     Status Login(const char* username, const char* password);
     Status Logout(const char* username);
@@ -23,9 +26,8 @@ class DataStore {
 
   private:
     int FindIndexOf(const char* username);
-    bool IsInMap(std::string username);
 
-    std::unordered_map<std::string, UserEntry> m;
+    Registrar* reg;
     std::vector<Profile> profiles;
 };
 

@@ -1,4 +1,5 @@
-REGISTER lucas 1234
-LOGIN lucas 1234
+REGISTER rissa 1234
+LOGIN rissa 1234
 DELAY 1
-SENDF2 evan testFile.txt
+SENDA2 evan YO dude
+SENDA I hate everyone

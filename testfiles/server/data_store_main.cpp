@@ -7,6 +7,7 @@
 #include <iostream>
 
 const char* LOG_PATH = "log/log_data_store.txt";
+const char* REGISTRAR_FILE_PATH = "testfiles/server/registrar.txt";
 
 int BasicLoginLogout();
 int MixedLoginLogout();
@@ -28,7 +29,7 @@ int main () {
 
 
 int BasicLoginLogout() {
-    DataStore ds;
+    DataStore ds(REGISTRAR_FILE_PATH);
     int numFails = 0;
     /**
      * Register one user
@@ -37,7 +38,7 @@ int BasicLoginLogout() {
     std::string p1 = "1234";
     std::string p11 = "12345";
     if (ds.Register(u1.c_str(), p1.c_str()) != OK) {
-        std::cout << "Failed to register e1" << std::endl;
+        std::cout << "Failed to register e1 !!! MAKE SURE YOU DELETED \"testfiles/server/registrar.txt\" prior to running the test" << std::endl;
         numFails++;
     }
 
@@ -136,12 +137,12 @@ int BasicLoginLogout() {
 
 
 int MixedLoginLogout() {
-    DataStore ds;
+    DataStore ds(REGISTRAR_FILE_PATH);
     int numFails = 0;
     /*
      * Register one user
      */
-    std::string u1 = "Lucas";
+    std::string u1 = "rissa";
     std::string p1 = "1234";
     std::string p11 = "12345";
     if (ds.Register(u1.c_str(), p1.c_str()) != OK) {
@@ -162,7 +163,7 @@ int MixedLoginLogout() {
     /**
      * Register a second user
      */
-    std::string u2 = "Oscar";
+    std::string u2 = "evan";
     std::string p2 = "345";
     if (ds.Register(u2.c_str(), p2.c_str()) != OK) {
         std::cout << "Failed to register e2" << std::endl;
@@ -242,12 +243,12 @@ int MixedLoginLogout() {
 
 
 int DequeTests() {
-    DataStore ds;
+    DataStore ds(REGISTRAR_FILE_PATH);
     int numFails = 0;
     Log log(LOG_PATH);
     SocketMessenger sockMsgr(&log);
     
-    std::string u1 = "Lucas";
+    std::string u1 = "steph";
     std::string p1 = "1234";
 
     ds.Register(u1.c_str(), p1.c_str());
@@ -305,19 +306,19 @@ int DequeTests() {
 
 
 int GroupEnqueueTests() {
-    DataStore ds;
+    DataStore ds(REGISTRAR_FILE_PATH);
     int numFails = 0;
     Log log(LOG_PATH);
     SocketMessenger sockMsgr(&log);
     
-    std::string u1 = "Lucas";
+    std::string u1 = "steve";
     std::string p1 = "1234";
 
-    std::string u2 = "Oscar";
-    std::string p2 = "345";
+    std::string u2 = "shawn";
+    std::string p2 = "3455";
 
-    std::string u3 = "Rissa";
-    std::string p3 = "678";
+    std::string u3 = "koda";
+    std::string p3 = "6782";
 
     ds.Register(u1.c_str(), p1.c_str());
     ds.Login(u1.c_str(), p1.c_str());

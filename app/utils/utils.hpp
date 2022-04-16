@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#define REGISTRAR_FILE_PATH "app/registrar.txt"
 #define INT_BYTES 4
 #define MAX_FILE_SIZE 10000000
 #define MIN_USRNAME_SIZE 4

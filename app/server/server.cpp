@@ -2,15 +2,16 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-#define SUMMARY_LEN 100
 
-const char* ONBOARDING_MESSAGE = "UI connection established";
-const char* ANON_USERNAME = "Anon";
-const char* SERVER_USERNAME = "Server";
+#define SUMMARY_LEN 100
+#define ONBOARDING_MESSAGE "UI connection established"
+#define ANON_USERNAME "Anon"
+#define SERVER_USERNAME "Server"
 
 Server::Server(Log* log) { 
 	this->log = new Log(log);
 	this->sockMsgr = new SocketMessenger(log);
+	this->ds = DataStore(REGISTRAR_FILE_PATH);
 }
 
 

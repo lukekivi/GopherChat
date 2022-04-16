@@ -1,34 +1,40 @@
 #include "data_store.hpp"
 
-Status DataStore::Register(const char* username, const char* password) {
-    std::string usr(username);
+DataStore::DataStore(const char* registrarFilePath) {
+    reg = new Registrar(registrarFilePath);
+}
 
-    if (IsInMap(usr)) {
-        return FAILURE;
-    } else {
-        m[usr] = UserEntry(password);
+Status DataStore::Register(const char* username, const char* password) {
+    UserEntry userEntry(username, password);
+    
+    if (reg->Register(userEntry)) {
         return OK;
+    } else {
+        return FAILURE;
     }
 }
 
 
 Status DataStore::Login(const char* username, const char* password) {
-    std::string usr(username);
+    UserEntry* userEntry = reg->GetUser(username);
 
-    if (!IsInMap(usr)) {
+    if (userEntry == NULL) {
         return FAILURE;
     } 
 
-    if (!m[usr].ComparePassword(password)) {
+    if (!userEntry->ComparePassword(password)) {
+        delete userEntry;
         return LOGGED_OUT;
     }
 
     if (IsLoggedIn(username)) {
+        delete userEntry;
         return OK;
     }
 
     // actually perform log in
     profiles.push_back(Profile(username));
+    delete userEntry;
     return LOGGED_IN;
 }
 
@@ -56,16 +62,6 @@ int DataStore::FindIndexOf(const char* username) {
         }
     }
     return -1;
-}
-
-
-bool DataStore::IsInMap(std::string username) {
-     for (auto e : m) {
-        if (e.first.compare(username) == 0) {
-            return true;
-        }
-    }
-    return false;
 }
 
 

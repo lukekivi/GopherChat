@@ -9,7 +9,6 @@
 #include <string>
 
 class Log {
-    
     public:
         Log(std::string filePath) { SetLogFile(filePath); }
         Log(Log* log) { CopyLogFile(log->filePath); }

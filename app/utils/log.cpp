@@ -1,5 +1,5 @@
 #include "log.hpp"
-#include<ctime>
+#include <ctime>
 
 const std::string ERROR_STRING = "ERROR: ";
 const int ERROR_MSG_SIZE = 4096;

@@ -21,7 +21,6 @@ std::vector<CommandData*> ScriptReader::getCommands() {
         std::string command;
 
         if(!(iss >> command)) {
-            log->Info("Empty line read in.");
             continue;
         }
 

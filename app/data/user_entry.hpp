@@ -7,15 +7,15 @@
 
 class UserEntry {
   public:
-    UserEntry() {};
-
-    UserEntry operator=(UserEntry entry) {
-        strcpy(password, entry.password);
-        return entry;
+    UserEntry(const char* username_, const char* password_) {
+        strcpy(username, username_);
+        strcpy(password, password_);
     }
 
-    UserEntry(const char* password_) {
-        strcpy(password, password_);
+    UserEntry operator=(UserEntry entry) {
+        strcpy(username, entry.username);
+        strcpy(password, entry.password);
+        return entry;
     }
 
     bool ComparePassword(const char* guess) {
@@ -26,7 +26,16 @@ class UserEntry {
         }
     }
 
+    const char* GetUsername() {
+        return username;
+    }
+
+    const char* GetPassword() {
+        return password;
+    }
+
   private:
+    char username[MAX_USRNAME_SIZE+1];
     char password[MAX_PWD_SIZE+1];
 };
 
