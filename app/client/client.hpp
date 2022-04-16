@@ -58,6 +58,8 @@ class Client {
         void HandleMsg(int i);
         void HandleFile(int i);
 
+        void PrintList(ResponseData* responseData);
+
         void ExitGracefully();
 
         int GetCurrentTime();

@@ -191,9 +191,11 @@ void Client::HandleResponse(int i) {
 	switch(status) {
 		case OK:
 			log->Info("Response OK\n\t- user: %s\n\t- msg: ", responseData->getUsername(), responseData->getMsg());
+			PrintResponse(responseData);
 			break;
 		case FAILURE:
 		 	log->Info("Response FAILURE\n\t- user: %s\n\t- msg: ", responseData->getUsername(), responseData->getMsg());
+			 PrintResponse(responseData);
 			break;
 		case LOGGED_IN:
 			log->Info("Confirmed that %s was logged in", responseData->getUsername());
@@ -202,17 +204,20 @@ void Client::HandleResponse(int i) {
 			loggedInUser = new char[strlen(username)+1];
 			strcpy(loggedInUser, username);
 			SetupSession();
+			PrintResponse(responseData);
 			break;
 		case LOGGED_OUT:
 			log->Info("Confirmed that %s was logged out", loggedInUser);
 			unconfirmedLogout = false; 	// logout is confirmed
 			delete[] loggedInUser;
 			loggedInUser = NULL;
+			PrintResponse(responseData);
 			break;
-		case LIST:
+		case LISTT:
+			PrintList(responseData);
 			break;
 		default:
-			log->Error("HandleResponse: hit nonexisteant Status.");
+			log->Error("HandleResponse: hit nonexistant Status.");
 			ExitGracefully();
 	}
 
@@ -221,8 +226,6 @@ void Client::HandleResponse(int i) {
 	} else {
 		RemoveConnection(i);
 	}
-
-	PrintResponse(responseData);
 
 	delete responseData;
 }
@@ -489,3 +492,16 @@ bool Client::IsDelay() {
 		return true;
 	}
 }
+
+
+void Client::PrintList(ResponseData* responseData) {
+	const char* username = responseData->getUsername();
+	const char* msg = responseData->getMsg();
+
+	std::vector<std::string> usernames = sockMsgr->BuildListOfUsers(msg);
+
+	std::cout << username << ": all signed in users:" << std::endl;
+	for (std::string user : usernames) {
+		std::cout << "\t - " << user << std::endl;
+	} 
+}	
