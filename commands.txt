@@ -1,5 +1,6 @@
-REGISTER rissa 1234
-LOGIN rissa 1234
+REGISTER wario foobar00
 DELAY 1
-SENDA2 evan YO dude
-SENDA I hate everyone
+LOGIN wario foobar00
+DELAY 1
+LIST
+DELAY 10
