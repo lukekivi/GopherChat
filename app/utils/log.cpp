@@ -52,8 +52,9 @@ void Log::Out(
     const char* recipient, 
     const char* msg
 ) {
+    std::time_t result = std::time(nullptr);
     std::cout << description << std::endl;
-    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   time: " << std::asctime(std::localtime(&result)) << std::endl;
     std::cout << "\t-   user: " << user << std::endl;
     if (recipient != NULL) {
         std::cout << "\t-  recip: " << recipient << std::endl;
@@ -71,8 +72,9 @@ void Log::Out(
     std::vector<std::string> recipients, 
     const char* msg
 ) {
+    std::time_t result = std::time(nullptr);
     std::cout << description << std::endl;
-    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   time: " << std::asctime(std::localtime(&result)) << std::endl;
     std::cout << "\t-   user: " << user << std::endl;
     std::cout << "\t- recips: ";
     for (int i = 0; i < recipients.size(); i++) {
@@ -100,8 +102,9 @@ void Log::Out(
     const char* msg, 
     int size
 ) {
+    std::time_t result = std::time(nullptr);
     std::cout << description << std::endl;
-    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   time: " << std::asctime(std::localtime(&result)) << std::endl;
     std::cout << "\t-   user: " << user << std::endl;
     std::cout << "\t-  recip: " << recipient << std::endl;
     std::cout << "\t-   file: " << fileName << std::endl;
@@ -118,8 +121,10 @@ void Log::Out(
     const char* msg, 
     int size
 ) {
+
+    std::time_t result = std::time(nullptr);
     std::cout << description << std::endl;
-    std::cout << "\t-   time: " << std::time(0) << std::endl;
+    std::cout << "\t-   time: " << std::asctime(std::localtime(&result)) << std::endl;
     std::cout << "\t-   user: " << user << std::endl;
     std::cout << "\t- recips: ";
     for (int i = 0; i < recipients.size(); i++) {
