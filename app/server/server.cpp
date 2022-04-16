@@ -58,6 +58,7 @@ void Server::StartServer(int port) {
 	}
 
 	log->Info("Listening to port %d.", port);
+	std::cout << "GopherChat server is running." << std::endl;
 	
 	nConns = 0;	
 	memset(peers, 0, sizeof(peers));	
