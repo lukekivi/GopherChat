@@ -11,13 +11,14 @@
 Server::Server(Log* log) { 
 	this->log = new Log(log);
 	this->sockMsgr = new SocketMessenger(log);
-	this->ds = DataStore(REGISTRAR_FILE_PATH);
+	this->ds = new DataStore(REGISTRAR_FILE_PATH);
 }
 
 
 Server::~Server() {
 	delete log;
 	delete sockMsgr;
+	delete ds;
 }
 
 
@@ -187,8 +188,8 @@ void Server::RemoveConnection(int i) {
 		log->Info("Removed REG Connection.");
 	}
 
-	if ((IsUiConn(i) || IsFileConn(i)) && ds.IsLoggedIn(connData[i].GetUsername())) {
-		ds.Logout(connData[i].GetUsername());
+	if ((IsUiConn(i) || IsFileConn(i)) && ds->IsLoggedIn(connData[i].GetUsername())) {
+		ds->Logout(connData[i].GetUsername());
 		log->Out("Log Out", connData[i].GetUsername(), NULL, FAILURE_MSG);
 		log->Info("%s", FAILURE_MSG);
 	} 
@@ -254,7 +255,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
 
-	Status status = ds.Register(username, password);
+	Status status = ds->Register(username, password);
 	char* message;
 	const char* msg;
 
@@ -283,7 +284,7 @@ void Server::HandleRegister(int i, CommandData* commandData) {
 void Server::HandleLogin(int i, CommandData* commandData) {
 	const char* username = commandData->getArgs()[0];
 	const char* password = commandData->getArgs()[1];
-	Status status = ds.Login(username, password);
+	Status status = ds->Login(username, password);
 
 	char* message;
 	const char* msg;
@@ -293,9 +294,9 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 			if (GetUiConn(username) == -1) {	// Is logged in but no UI connection (process never made UI connections)
 				msg = "Already logged in somewhere else.";
 			} else {
-				ds.Logout(username);		// relics of old user
+				ds->Logout(username);		// relics of old user
 				ShedConnections(username);  // need to be removed
-				ds.Login(username, password);
+				ds->Login(username, password);
 				msg = "Succesfullylogged in.";
 			}
 			break;
@@ -326,7 +327,7 @@ void Server::HandleLogin(int i, CommandData* commandData) {
 void Server::HandleLogout(int i, CommandData* commandData) {
 	const char* username = commandData->getUsername();
 
-	Status status = ds.Logout(username);
+	Status status = ds->Logout(username);
 	char* message;
 	const char* msg;
 
@@ -435,7 +436,7 @@ void Server::SetUiConn(int i, CommandData* commandData) {
 		ExitGracefully();
 	}
 
-	ds.Enqueue(username, byteBody);
+	ds->Enqueue(username, byteBody);
 	delete msgData;
 	delete byteBody;
 }
@@ -458,7 +459,7 @@ void Server::HandleSend(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(username)) {
+	if (ds->IsLoggedIn(username)) {
 		StartMessageToAllUsers(username, commandData, false);  // distribute message
 		msg = "Successfully sent public message.";
 		status = OK;
@@ -487,7 +488,7 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(username)) {
+	if (ds->IsLoggedIn(username)) {
 		StartMessageToAllUsers(username, commandData, true);   // distribute message
 		msg = "Successfully sent anonymous public message.";
 		status = OK;
@@ -521,7 +522,7 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bo
 		message = "Sending Public Message";
 	}
 
-	log->Out(message, username, ds.GetSignedInUsers(), commandData->getArgs()[0]);
+	log->Out(message, username, ds->GetSignedInUsers(), commandData->getArgs()[0]);
 
 	MsgData* msgData = new MsgData(UI_MSG, usr, msg);
 
@@ -532,7 +533,7 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bo
 		ExitGracefully();
 	}
 
-	ds.EnqueueAllExcept(username, byteBody);
+	ds->EnqueueAllExcept(username, byteBody);
 
 	delete msgData;
 	delete byteBody;
@@ -542,7 +543,7 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bo
 void Server::CheckMessageDeques() {
 	for (int i = 0; i <= nConns; i++) {
 		if (IsUiConn(i) && !connData[i].IsActive()) {
-			ByteBody* byteBody = ds.Dequeue(connData[i].GetUsername());
+			ByteBody* byteBody = ds->Dequeue(connData[i].GetUsername());
 
 			if (byteBody != NULL) {
 				sockMsgr->InitSendStat(&sStat[i]);
@@ -565,7 +566,7 @@ void Server::HandleSendTo(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(username)) {
+	if (ds->IsLoggedIn(username)) {
 		StartMessageToUser(username, commandData, false);  // send message
 		msg = "Successfully sent message.";
 		status = OK;
@@ -595,7 +596,7 @@ void Server::HandleSendToAnon(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(username)) {
+	if (ds->IsLoggedIn(username)) {
 		StartMessageToUser(username, commandData, true);   // distribute message
 		msg = "Successfully sent anonymous public message.";
 		status = OK;
@@ -636,7 +637,7 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 		ExitGracefully();
 	}
 
-	ds.Enqueue(commandData->getArgs()[0], byteBody);
+	ds->Enqueue(commandData->getArgs()[0], byteBody);
 
 	delete msgData;
 	delete byteBody;
@@ -664,7 +665,7 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(commandData->getUsername())) {
+	if (ds->IsLoggedIn(commandData->getUsername())) {
 		StartFileToAllUsers(commandData);
 		msg = "Successfully sent public file.";
 		status = OK;
@@ -685,7 +686,7 @@ void Server::HandleSendFileTo(int i, CommandData* commandData) {
 	const char* msg;
 	Status status;
 
-	if (ds.IsLoggedIn(commandData->getUsername())) {
+	if (ds->IsLoggedIn(commandData->getUsername())) {
 		SendFileToUser(commandData);
 		msg = "Successfully sent file.";
 		status = OK;
@@ -702,7 +703,7 @@ void Server::HandleSendFileTo(int i, CommandData* commandData) {
 
 
 void Server::StartFileToAllUsers(CommandData* commandData) {
-	std::vector<std::string> recipients = ds.GetSignedInUsers();
+	std::vector<std::string> recipients = ds->GetSignedInUsers();
 
 	char* sender = commandData->getUsername();
 	char* sndr = new char[strlen(sender) + 1];

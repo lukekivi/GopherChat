@@ -73,7 +73,7 @@ class Server {
 
     Log* log;
     SocketMessenger* sockMsgr;
-    DataStore ds;
+    DataStore* ds;
 
     int nConns;	                                     // total # of data sockets
     struct pollfd peers[MAX_CONCURRENCY_LIMIT+1];	   // sockets to be monitored by poll()
