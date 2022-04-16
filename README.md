@@ -73,7 +73,7 @@ All output you will be interested in is directed to the terminal as is requested
 
 * Client logs are given a random id. For that reason the first terminal output will always be the designated log file for the client instance. Output will look like this:
 	```
-	kivix019@csel-kh1250-04:/project/kivix019/GopherChat $ ./build/client/client_main 54.172.118.127 9020 commands.txt
+	$ ./build/client/client_main 54.172.118.127 9020 commands.txt
 	Log id: 6297
 	```
 	So after running the client I could find the log for that instance at `log/client_log_6297.txt`.
