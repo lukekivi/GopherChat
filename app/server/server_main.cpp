@@ -12,8 +12,12 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	if (strcmp(argv[1], "reset") == 0) { 
-		std::cout << "Reset registration file." << std::endl;
-		remove(REGISTRAR_FILE_PATH);
+	
+		if (remove(REGISTRAR_FILE_PATH) != 0) {
+			std::cout << "Failed to delete registration file." << std::endl;
+		} else {
+			std::cout << "Reset registration file." << std::endl;
+		}
 		exit(0);
 	}
 
