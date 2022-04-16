@@ -11,6 +11,8 @@ port_num = 9013
 server_ip = 54.172.118.127
 command_file = "commands.txt"
 
+default: server_main client_main
+
 build:
 	mkdir -p build
 	mkdir -p build/server
