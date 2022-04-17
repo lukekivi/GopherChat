@@ -565,15 +565,22 @@ void Server::HandleSendTo(int i, CommandData* commandData) {
 
 	char* message;
 	const char* msg;
-	Status status;
+	Status status = FAILURE;
 
 	if (ds->IsLoggedIn(username)) {
-		StartMessageToUser(username, commandData, false);  // send message
-		msg = "Successfully sent message.";
-		status = OK;
+		int results = StartMessageToUser(username, commandData, false);   // distribute message
+
+		if (results == -2) {
+			msg = "User is not registered, cannot send anonymous message.";
+		} else if (results == -1) {
+			msg = "User was not signed in, cannot send anonymous message.";
+		} else {
+			msg = "Successfully sent anonymous message.";
+			status = OK;
+		}
+		
 	} else {
-		msg = "Not logged in. Failed to send public message.";
-		status = FAILURE;
+		msg = "Not logged in. Failed to send anonymous public message.";
 	}
 
 	message = new char[strlen(msg) + 1];
@@ -595,19 +602,20 @@ void Server::HandleSendToAnon(int i, CommandData* commandData) {
 
 	char* message;
 	const char* msg;
-	Status status;
+	Status status = FAILURE;
 
 	if (ds->IsLoggedIn(username)) {
 		int results = StartMessageToUser(username, commandData, true);   // distribute message
 
 		if (results == -2) {
-			msg = "User is not registered.";
+			msg = "User is not registered, cannot send anonymous message.";
 		} else if (results == -1) {
-			msg = "User was not signed in.";
+			msg = "User was not signed in, cannot send anonymous message.";
 		} else {
-			msg = "Successfully sent anonymous public message.";
+			msg = "Successfully sent anonymous message.";
+			status = OK;
 		}
-		status = OK;
+
 	} else {
 		msg = "Not logged in. Failed to send anonymous public message.";
 		status = FAILURE;
