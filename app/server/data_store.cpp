@@ -65,15 +65,19 @@ int DataStore::FindIndexOf(const char* username) {
 }
 
 
-bool DataStore::Enqueue(const char* username, ByteBody* byteBody) {
+int DataStore::Enqueue(const char* username, ByteBody* byteBody) {
     int index = FindIndexOf(username);
 
     if (index == -1) {
-        return false;
+        if (reg->GetUser(username) == NULL) {
+            return -2;
+        } else {
+            return -1;
+        }
     } 
 
     profiles.at(index).EnqueueBody(new ByteBody(byteBody));
-    return true;
+    return 0;
 }
 
 
@@ -88,12 +92,16 @@ ByteBody* DataStore::Dequeue(const char* username) {
 }
 
 
-void DataStore::EnqueueAllExcept(const char* username, ByteBody* byteBody) {
+int DataStore::EnqueueAllExcept(const char* username, ByteBody* byteBody) {
+    if (profiles.size() == 0) {
+        return -1;
+    }
     for (int i = 0; i < profiles.size(); i++) {
         if (strcmp(profiles.at(i).GetUsername(), username) != 0) {
             profiles.at(i).EnqueueBody(new ByteBody(byteBody));
         }
     }
+    return 0;
 }
 
 
@@ -116,4 +124,8 @@ std::vector<std::string> DataStore::GetSignedInUsers() {
         usernames.push_back(username);
     }
     return usernames;
+}
+
+bool DataStore::IsUserRegistered(const char* username) {
+    return reg->IsIn(username);
 }

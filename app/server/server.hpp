@@ -59,11 +59,11 @@ class Server {
     void HandleSendAnon(int i, CommandData* commandData);
     void HandleSendTo(int i, CommandData* commandData);
     void HandleSendToAnon(int i, CommandData* commandData);
-    void StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon);
-    void StartMessageToUser(char* username, CommandData* commandData, bool isAnon);
+    int StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon);
+    int StartMessageToUser(char* username, CommandData* commandData, bool isAnon);
     void CheckMessageDeques();
-    void StartFileToAllUsers(CommandData* commandData);
-    void SendFileToUser(CommandData* commandData);
+    int StartFileToAllUsers(CommandData* commandData);
+    int SendFileToUser(CommandData* commandData);
 
     void HandleSendFile(int i, CommandData* commandData);
     void HandleSendFileTo(int i, CommandData* commandData);

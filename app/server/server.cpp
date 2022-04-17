@@ -453,8 +453,11 @@ void Server::HandleSend(int i, CommandData* commandData) {
 	Status status;
 
 	if (ds->IsLoggedIn(username)) {
-		StartMessageToAllUsers(username, commandData, false);  // distribute message
-		msg = "Successfully sent public message.";
+		if (StartMessageToAllUsers(username, commandData, false) == -1) {
+			msg = "No users online to receive your message.";
+		} else {
+			msg = "Successfully sent public message.";
+		}
 		status = OK;
 	} else {
 		msg = "Not logged in. Failed to send public message.";
@@ -482,9 +485,13 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
 	Status status;
 
 	if (ds->IsLoggedIn(username)) {
-		StartMessageToAllUsers(username, commandData, true);   // distribute message
-		msg = "Successfully sent anonymous public message.";
+		if (StartMessageToAllUsers(username, commandData, true) == -1) {
+			msg = "No users online to receive your message.";
+		} else {
+			msg = "Successfully sent anonymous public message.";
+		}
 		status = OK;
+
 	} else {
 		msg = "Not logged in. Failed to send anonymous public message.";
 		status = FAILURE;
@@ -501,7 +508,7 @@ void Server::HandleSendAnon(int i, CommandData* commandData) {
  * @param username of the user who issued the command, is deleted elsewhere
  * @param commandData contains the username that will be visible to the client (as well as message data)
  */
-void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon) {
+int Server::StartMessageToAllUsers(char* username, CommandData* commandData, bool isAnon) {
 	char* msg = new char[strlen(commandData->getArgs()[0]) + 1];
 	strcpy(msg, commandData->getArgs()[0]);
 
@@ -526,10 +533,11 @@ void Server::StartMessageToAllUsers(char* username, CommandData* commandData, bo
 		ExitGracefully();
 	}
 
-	ds->EnqueueAllExcept(username, byteBody);
+	int results = ds->EnqueueAllExcept(username, byteBody);
 
 	delete msgData;
 	delete byteBody;
+	return results;
 }
 
 
@@ -590,8 +598,15 @@ void Server::HandleSendToAnon(int i, CommandData* commandData) {
 	Status status;
 
 	if (ds->IsLoggedIn(username)) {
-		StartMessageToUser(username, commandData, true);   // distribute message
-		msg = "Successfully sent anonymous public message.";
+		int results = StartMessageToUser(username, commandData, true);   // distribute message
+
+		if (results == -2) {
+			msg = "User is not registered.";
+		} else if (results == -1) {
+			msg = "User was not signed in.";
+		} else {
+			msg = "Successfully sent anonymous public message.";
+		}
 		status = OK;
 	} else {
 		msg = "Not logged in. Failed to send anonymous public message.";
@@ -605,7 +620,7 @@ void Server::HandleSendToAnon(int i, CommandData* commandData) {
 }
 
 
-void Server::StartMessageToUser(char* username, CommandData* commandData, bool isAnon) {
+int Server::StartMessageToUser(char* username, CommandData* commandData, bool isAnon) {
 	char* msg = new char[strlen(commandData->getArgs()[1]) + 1];
 	strcpy(msg, commandData->getArgs()[1]);
 
@@ -630,10 +645,11 @@ void Server::StartMessageToUser(char* username, CommandData* commandData, bool i
 		ExitGracefully();
 	}
 
-	ds->Enqueue(commandData->getArgs()[0], byteBody);
+	int results = ds->Enqueue(commandData->getArgs()[0], byteBody);
 
 	delete msgData;
 	delete byteBody;
+	return results;
 }
 
 
@@ -659,8 +675,11 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 	Status status;
 
 	if (ds->IsLoggedIn(commandData->getUsername())) {
-		StartFileToAllUsers(commandData);
-		msg = "Successfully sent public file.";
+		if(StartFileToAllUsers(commandData) == 1) {
+			msg = "There are no users online to send the file to.";
+		} else {
+			msg = "Successfully sent public file.";
+		}
 		status = OK;
 	} else {
 		msg = "Not logged in. Failed send to public file.";
@@ -677,15 +696,24 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 void Server::HandleSendFileTo(int i, CommandData* commandData) {
 	char* message;
 	const char* msg;
-	Status status;
+	Status status = FAILURE;
 
 	if (ds->IsLoggedIn(commandData->getUsername())) {
-		SendFileToUser(commandData);
-		msg = "Successfully sent file.";
-		status = OK;
+		int results = SendFileToUser(commandData);
+
+		if (results == 0) {
+			msg = "Successfully sent file.";
+			status = OK;
+		} else if (results == -1) {
+			msg = "Cannot send file, user not fully logged in yet. Missing file connections.";
+		} else if (results == -2) {
+			msg = "Cannot send file, user not logged in.";
+		} else {
+			msg = "Cannot send file, user is not registered.";
+		}
+
 	} else {
 		msg = "Not logged in. Failed to send file.";
-		status = FAILURE;
 	}
 
 	message = new char[strlen(msg) + 1];
@@ -695,7 +723,7 @@ void Server::HandleSendFileTo(int i, CommandData* commandData) {
 }
 
 
-void Server::StartFileToAllUsers(CommandData* commandData) {
+int Server::StartFileToAllUsers(CommandData* commandData) {
 	std::vector<std::string> recipients = ds->GetSignedInUsers();
 
 	char* sender = commandData->getUsername();
@@ -756,10 +784,16 @@ void Server::StartFileToAllUsers(CommandData* commandData) {
 
 	delete msgData;
 	delete byteBody;
+
+	if (recipients.size() == 0) {
+		return -1;
+	} else {
+		return 0;
+	}
 }
 
 
-void Server::SendFileToUser(CommandData* commandData) {
+int Server::SendFileToUser(CommandData* commandData) {
 	char* sender = commandData->getUsername();
 	char* sndr = new char[strlen(sender) + 1];
 	strcpy(sndr, sender);
@@ -800,18 +834,27 @@ void Server::SendFileToUser(CommandData* commandData) {
 		ExitGracefully();
 	}
 
-	int index = GetFileConn(recipient);
-
-	if (index == -1) {
-		log->Error("HandleSendFileTo(): Was unable to find an available file connection for: %s", recipient);
+	int results;
+	if (ds->IsLoggedIn(recipient)) {
+		int index = GetFileConn(recipient);
+		if (index == -1) {
+			log->Error("HandleSendFileTo(): Was unable to find an available file connection for: %s", recipient);
+			results = -1; // no file conn
+		} else {
+			sockMsgr->InitSendStat(&sStat[index]);
+			sockMsgr->BuildSendMsg(&sStat[index], byteBody);
+			SendMessage(index);
+			results = 0;
+		}
+	} else if (ds->IsUserRegistered(recipient)) {
+		results = -2; // not logged in
 	} else {
-		sockMsgr->InitSendStat(&sStat[index]);
-		sockMsgr->BuildSendMsg(&sStat[index], byteBody);
-		SendMessage(index);
-	}
+		results = -3; // not logged in or registered
+	}	
 
 	delete msgData;
 	delete byteBody;
+	return results;
 }
 
 
