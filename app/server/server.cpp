@@ -683,7 +683,7 @@ void Server::HandleSendFile(int i, CommandData* commandData) {
 	Status status;
 
 	if (ds->IsLoggedIn(commandData->getUsername())) {
-		if(StartFileToAllUsers(commandData) == 1) {
+		if(StartFileToAllUsers(commandData) == -1) {
 			msg = "There are no users online to send the file to.";
 		} else {
 			msg = "Successfully sent public file.";
