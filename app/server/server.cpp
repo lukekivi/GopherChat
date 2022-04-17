@@ -793,7 +793,7 @@ int Server::StartFileToAllUsers(CommandData* commandData) {
 	delete msgData;
 	delete byteBody;
 
-	if (recipients.size() == 0) {
+	if (recipients.size() == 1) {
 		return -1;
 	} else {
 		return 0;
