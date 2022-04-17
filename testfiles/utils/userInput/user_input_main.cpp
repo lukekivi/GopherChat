@@ -213,13 +213,13 @@ int TestScriptRead() {
     }
 
     int numArgsEight = commands.at(7)->getNumArgs();
-    if (numArgsEight != 1) { 
-        std::cout << "NumArgsEight: " << numArgsEight << " was not 1" << std::endl;
+    if (numArgsEight != 2) { 
+        std::cout << "NumArgsEight: " << numArgsEight << " was not 2" << std::endl;
         numFailed++;
     }
 
     char* fileEight = commands.at(7)->getArgs()[0];
-    std::string expectedFileEight = "userInputTestFileOne.txt";
+    std::string expectedFileEight = "testfiles/test_input_files/testFile.txt";
     if (strcmp(fileEight, expectedFileEight.c_str()) != 0) {
         std::cout << "fileEight: \"" << fileEight << "\" was not \"" << expectedFileEight << "\"" <<  std::endl;
         numFailed++;
@@ -235,8 +235,8 @@ int TestScriptRead() {
     }
 
     int numArgsNine = commands.at(8)->getNumArgs();
-    if (numArgsNine != 2) { 
-        std::cout << "NumArgsNine: " << numArgsNine << " was not 2" << std::endl;
+    if (numArgsNine != 3) { 
+        std::cout << "NumArgsNine: " << numArgsNine << " was not 3" << std::endl;
         numFailed++;
     }
 
