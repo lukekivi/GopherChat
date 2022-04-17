@@ -93,7 +93,7 @@ ByteBody* DataStore::Dequeue(const char* username) {
 
 
 int DataStore::EnqueueAllExcept(const char* username, ByteBody* byteBody) {
-    if (profiles.size() == 0) {
+    if (profiles.size() == 1) {
         return -1;
     }
     for (int i = 0; i < profiles.size(); i++) {
