@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #ifndef SCRIPT_READER_H
 #define SCRIPT_READER_H
 

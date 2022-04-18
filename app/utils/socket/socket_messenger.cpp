@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #include "socket_messenger.hpp"
 #include <sys/socket.h>
 #include <unistd.h>

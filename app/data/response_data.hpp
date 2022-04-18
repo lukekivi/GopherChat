@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #ifndef RESPONSE_DATA_H
 #define RESPONSE_DATA_H
 

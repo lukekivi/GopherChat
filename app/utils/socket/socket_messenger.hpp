@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #ifndef SOCKET_MESSENGER_HPP
 #define SOCKET_MESSENGER_HPP
 

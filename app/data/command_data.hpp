@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #ifndef COMMANDS_DATA_H
 #define COMMANDS_DATA_H
 

@@ -1,3 +1,7 @@
+// Author Name: Lucas Kivi
+// Date: Mon Apr 18, 2022
+// x500 UN: kivix019
+
 #include "data_store.hpp"
 
 DataStore::DataStore(const char* registrarFilePath) {
